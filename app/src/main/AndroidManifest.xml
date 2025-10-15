@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- network -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:name=".other.App"
+        android:allowBackup="true"
+        android:allowClearUserData="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@drawable/ic_municipality"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/ic_municipality"
+        android:supportsRtl="false"
+        android:theme="@style/Theme.PakbanManagement"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="23">
+        <activity
+            android:name=".presentation.activity.MainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".presentation.activity.AppActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter
+                android:autoVerify="true"
+                tools:ignore="AppLinkUrlError"
+                tools:targetApi="23">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.ALTERNATIVE" />
+
+                <data
+                    android:host="login"
+                    android:scheme="roshdgroup" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

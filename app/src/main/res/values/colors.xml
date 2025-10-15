@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="color_primary_dark">#1976d2</color>
+    <color name="color_primary">#2196f3</color>
+    <color name="color_primary_light">#bbdefb</color>
+    <color name="color_accent">#4caf50</color>
+
+    <color name="color_secondary">#0958d9</color>
+
+    <color name="color_black">#000000</color>
+    <color name="color_white">#ffffff</color>
+
+    <color name="color_gray_dark">#5E5E5E</color>
+    <color name="color_gray">#888888</color>
+    <color name="color_gray_light">#eeeeee</color>
+
+    <color name="color_gray_edt1">#F5F5F5</color>
+    <color name="color_gray_edt2">#DCDCDC</color>
+
+    <color name="color_red_light">#E57373</color>
+
+    <color name="color_success">#28A745</color>
+    <color name="color_error">#DC3545</color>
+    <color name="color_info">#17A2B8</color>
+    <color name="color_warning">#E1AC0A</color>
+
+    <color name="order_status_new">#009688</color>
+    <color name="order_status_hold">#F57C00</color>
+    <color name="order_status_failed">#C62828</color>
+    <color name="order_status_cancelled">#546E7A</color>
+    <color name="order_status_processing">#1976D2</color>
+    <color name="order_status_shipped">#6A1B9A</color>
+    <color name="order_status_completed">#2E7D32</color>
+    <color name="order_status_refunded">#FFB300</color>
+</resources>
