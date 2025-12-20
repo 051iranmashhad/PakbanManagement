@@ -1,4 +1,4 @@
-package ir.pakbanmanagement.presentation.fragment
+package ir.pakbanmanagement.presentation.main.fragment
 
 import android.content.Intent
 import android.provider.Settings

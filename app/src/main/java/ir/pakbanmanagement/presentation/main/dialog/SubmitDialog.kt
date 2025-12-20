@@ -1,4 +1,4 @@
-package ir.pakbanmanagement.presentation.dialog
+package ir.pakbanmanagement.presentation.main.dialog
 
 import android.view.View
 import androidx.core.view.isVisible

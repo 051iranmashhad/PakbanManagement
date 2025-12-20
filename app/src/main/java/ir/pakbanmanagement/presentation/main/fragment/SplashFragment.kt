@@ -1,11 +1,11 @@
-package ir.pakbanmanagement.presentation.fragment
+package ir.pakbanmanagement.presentation.main.fragment
 
 import android.net.Uri
 import androidx.fragment.app.FragmentActivity
 import dagger.hilt.android.AndroidEntryPoint
 import ir.pakbanmanagement.R
 import ir.pakbanmanagement.databinding.FragmentSplashBinding
-import ir.pakbanmanagement.mapper.UserMapper
+import ir.pakbanmanagement.mapper.TokenMapper
 import ir.pakbanmanagement.other.BaseFragment
 import ir.pakbanmanagement.other.Constant
 import ir.pakbanmanagement.other.PrefManager
@@ -19,7 +19,7 @@ import ir.pakbanmanagement.other.logV
 import ir.pakbanmanagement.other.openBrowser
 import ir.pakbanmanagement.other.setNavigator
 import ir.pakbanmanagement.other.toMapper
-import ir.pakbanmanagement.presentation.activity.MainActivity
+import ir.pakbanmanagement.presentation.main.activity.MainActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -43,12 +43,8 @@ class SplashFragment : BaseFragment<FragmentSplashBinding>() {
     private fun launchRegister() {
         myView.apply {
             txtVersion.text = "ویرایش ${getVersionName()}"
-            txtTitle.text = "در حال بارگذاری ..."
-            txtTitle.setTextColor(getColor(R.color.color_black))
             when {
                 !requireActivity().isNetworkAvailable() -> {
-                    txtTitle.text = "خطا در اتصال به اینترنت!"
-                    txtTitle.setTextColor(getColor(android.R.color.holo_red_dark))
                     setNavigator(ConnectionFragment())
                 }
 
@@ -61,13 +57,13 @@ class SplashFragment : BaseFragment<FragmentSplashBinding>() {
 
     private fun getIntent() {
         val uri: Uri? = requireActivity().intent.data?.also { "$it".logV() }
-        val userMapper = runBlocking {
-            PrefManager.getUser.first()
+        val tokenMapper = runBlocking {
+            PrefManager.getToken.first()
         }
 
         when {
-            userMapper.token == null
-                    && uri?.getQueryParameter(Constant.Key.DATA).isNullOrEmpty() -> {
+            tokenMapper.token.isNullOrEmpty() && uri?.getQueryParameter(Constant.Key.DATA)
+                .isNullOrEmpty() -> {
                 mJob.coroutineMain {
 
                     delay(2000)
@@ -81,11 +77,11 @@ class SplashFragment : BaseFragment<FragmentSplashBinding>() {
 
             uri != null && uri.isHierarchical -> {
                 mJob.coroutineMain {
-                    val userMapper = uri.getQueryParameter("data")?.toMapper<UserMapper>()
-                    mQueryParam[Constant.Key.TOKEN] = "${userMapper?.token}"
+                    val tokenMapper = uri.getQueryParameter("data")?.toMapper<TokenMapper>()
+                    mQueryParam[Constant.Key.TOKEN] = "${tokenMapper?.token}"
                     "${uri.getQueryParameter(Constant.Key.DATA)}".logV()
 
-                    PrefManager.setUser(userMapper)
+                    PrefManager.setToken(tokenMapper)
 
                     checkLogin()
                 }
@@ -95,7 +91,7 @@ class SplashFragment : BaseFragment<FragmentSplashBinding>() {
 
     private fun checkLogin() {
         mJob.coroutineMain {
-            if (PrefManager.getUser.first().token.isNullOrEmpty()) getIntent()
+            if (PrefManager.getToken.first().token.isNullOrEmpty()) getIntent()
             else {
                 delay(1500)
                 requireActivity().launchActivityAndFinish<MainActivity>()

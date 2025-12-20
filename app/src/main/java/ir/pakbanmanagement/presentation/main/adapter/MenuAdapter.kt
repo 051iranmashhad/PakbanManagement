@@ -1,4 +1,4 @@
-package ir.pakbanmanagement.presentation.adapter
+package ir.pakbanmanagement.presentation.main.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

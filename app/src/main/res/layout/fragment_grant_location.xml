@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/color_gray_light"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/layout_tool_bar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_50sdp"
+        android:background="@color/color_white"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingLeft="@dimen/_16sdp"
+        android:paddingRight="@dimen/_16sdp">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/img_back"
+            android:layout_width="@dimen/_32sdp"
+            android:layout_height="@dimen/_32sdp"
+            android:adjustViewBounds="true"
+            android:background="@drawable/selector_round_button"
+            android:padding="@dimen/_4sdp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_back" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/txt_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/medium"
+            android:text="مدیریت دسترسی ها"
+            android:textColor="@color/color_black"
+            android:textSize="@dimen/_12ssp"
+            app:fontFamily="@font/medium" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingLeft="@dimen/_16sdp"
+        android:paddingTop="@dimen/_12sdp"
+        android:paddingRight="@dimen/_16sdp"
+        android:paddingBottom="@dimen/_12sdp">
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/medium"
+                android:lineSpacingExtra="@dimen/_8sdp"
+                android:padding="@dimen/_4sdp"
+                android:text="* توجه:\nنرم افزار برای اجرای قابلیت ها نیازمند دسترسی های زیر است."
+                android:textColor="@color/color_black"
+                android:textSize="@dimen/_10ssp"
+                app:fontFamily="@font/medium" />
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/layout_location"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:background="@drawable/bg_gray_fill_corner"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:padding="@dimen/_8sdp">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/img_arrow_location"
+                    android:layout_width="@dimen/_24sdp"
+                    android:layout_height="@dimen/_24sdp"
+                    android:adjustViewBounds="true"
+                    android:padding="@dimen/_4sdp"
+                    android:scaleType="fitCenter"
+                    app:srcCompat="@drawable/ic_back" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="@dimen/_4sdp"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/bold"
+                    android:gravity="right"
+                    android:text="دسترسی موقعیت (Location)"
+                    android:textColor="@color/color_black"
+                    android:textSize="@dimen/_10ssp"
+                    app:fontFamily="@font/bold" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/img_location"
+                    android:layout_width="@dimen/_28sdp"
+                    android:layout_height="@dimen/_28sdp"
+                    android:adjustViewBounds="true"
+                    android:padding="@dimen/_2sdp"
+                    android:scaleType="fitCenter"
+                    android:tint="@color/color_error"
+                    app:srcCompat="@drawable/ic_un_verified" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/layout_gps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:background="@drawable/bg_gray_fill_corner"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:padding="@dimen/_8sdp">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/img_arrow_gps"
+                    android:layout_width="@dimen/_24sdp"
+                    android:layout_height="@dimen/_24sdp"
+                    android:adjustViewBounds="true"
+                    android:padding="@dimen/_4sdp"
+                    android:scaleType="fitCenter"
+                    app:srcCompat="@drawable/ic_back" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="@dimen/_4sdp"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/bold"
+                    android:gravity="right"
+                    android:text="دسترسی جی پی اس (GPS)"
+                    android:textColor="@color/color_black"
+                    android:textSize="@dimen/_10ssp"
+                    app:fontFamily="@font/bold" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/img_gps"
+                    android:layout_width="@dimen/_28sdp"
+                    android:layout_height="@dimen/_28sdp"
+                    android:adjustViewBounds="true"
+                    android:padding="@dimen/_2sdp"
+                    android:scaleType="fitCenter"
+                    android:tint="@color/color_error"
+                    app:srcCompat="@drawable/ic_un_verified" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/color_white"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="@dimen/_10sdp">
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/btn_submit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_primary"
+            android:fontFamily="@font/medium"
+            android:gravity="center"
+            android:padding="@dimen/_10sdp"
+            android:text="تایید"
+            android:textColor="@color/color_white"
+            android:textSize="@dimen/_14ssp"
+            app:fontFamily="@font/medium" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+</androidx.appcompat.widget.LinearLayoutCompat>

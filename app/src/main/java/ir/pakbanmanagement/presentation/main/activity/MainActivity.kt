@@ -1,4 +1,4 @@
-package ir.pakbanmanagement.presentation.activity
+package ir.pakbanmanagement.presentation.main.activity
 
 import android.content.res.Resources
 import android.view.Gravity
@@ -11,14 +11,16 @@ import dagger.hilt.android.AndroidEntryPoint
 import ir.pakbanmanagement.databinding.ActivityMainBinding
 import ir.pakbanmanagement.other.BaseActivityWithViewModel
 import ir.pakbanmanagement.other.Constant
+import ir.pakbanmanagement.other.PrefManager
 import ir.pakbanmanagement.other.coroutineMain
 import ir.pakbanmanagement.other.getVersionName
 import ir.pakbanmanagement.other.restartApp
 import ir.pakbanmanagement.other.setNavigator
-import ir.pakbanmanagement.presentation.adapter.MenuAdapter
-import ir.pakbanmanagement.presentation.dialog.SubmitDialog
-import ir.pakbanmanagement.presentation.fragment.HomeFragment
-import ir.pakbanmanagement.presentation.viewmodel.MainViewModel
+import ir.pakbanmanagement.presentation.main.adapter.MenuAdapter
+import ir.pakbanmanagement.presentation.main.dialog.SubmitDialog
+import ir.pakbanmanagement.presentation.main.fragment.HomeFragment
+import ir.pakbanmanagement.presentation.main.fragment.ProfileFragment
+import ir.pakbanmanagement.presentation.main.viewmodel.MainViewModel
 import kotlinx.coroutines.flow.collectLatest
 
 @AndroidEntryPoint
@@ -54,7 +56,7 @@ class MainActivity :
 
                 when (item) {
                     Constant.MenuKey.PROFILE -> {
-//                        setNavigator(EditProfileFragment(), isAddToBackStack = true)
+                        setNavigator(ProfileFragment(), isAddToBackStack = true)
                     }
 
                     Constant.MenuKey.LOG_OUT -> {
@@ -63,7 +65,10 @@ class MainActivity :
                             title = "خروج از حساب!",
                             subTitle = "آیا مایل به خروج از حساب کاربری خود هستید؟",
                         ) {
-                            restartApp()
+                            mJob.coroutineMain {
+                                PrefManager.deleteUser()
+                                restartApp()
+                            }
                         }.show()
                     }
                 }

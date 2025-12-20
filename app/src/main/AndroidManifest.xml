@@ -1,10 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <!-- network -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+
+    <!-- android 14 and higher -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+
+    <!-- location -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE"
+        tools:ignore="ForegroundServicesPolicy" />
 
     <application
         android:name=".other.App"
@@ -17,13 +29,13 @@
         android:roundIcon="@drawable/ic_municipality"
         android:supportsRtl="false"
         android:theme="@style/Theme.PakbanManagement"
-        android:usesCleartextTraffic="true"
-        tools:targetApi="23">
+        android:usesCleartextTraffic="true">
+
         <activity
-            android:name=".presentation.activity.MainActivity"
+            android:name=".presentation.main.activity.MainActivity"
             android:exported="false" />
         <activity
-            android:name=".presentation.activity.AppActivity"
+            android:name=".presentation.main.activity.AppActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -32,8 +44,7 @@
             </intent-filter>
             <intent-filter
                 android:autoVerify="true"
-                tools:ignore="AppLinkUrlError"
-                tools:targetApi="23">
+                tools:ignore="AppLinkUrlError">
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />

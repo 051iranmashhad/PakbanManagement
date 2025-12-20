@@ -3,6 +3,7 @@
 package ir.pakbanmanagement.presentation.main.fragment
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import androidx.core.view.isVisible
@@ -19,19 +20,21 @@ import ir.pakbanmanagement.other.LoadingDialog
 import ir.pakbanmanagement.other.LocationManager
 import ir.pakbanmanagement.other.PrefManager
 import ir.pakbanmanagement.other.checkLocationAndGpsPermissions
-import ir.pakbanmanagement.other.coroutineIO
+import ir.pakbanmanagement.other.coroutineMain
+import ir.pakbanmanagement.other.hasGpsEnabled
 import ir.pakbanmanagement.other.hasMultiplePermissionsGranted
+import ir.pakbanmanagement.other.logV
 import ir.pakbanmanagement.other.setNavigator
 import ir.pakbanmanagement.other.toMapper
 import ir.pakbanmanagement.other.toastMessage
 import ir.pakbanmanagement.presentation.main.activity.MainActivity
+import ir.pakbanmanagement.presentation.main.dialog.FineChildListDialog
 import ir.pakbanmanagement.presentation.main.dialog.FineListDialog
 import ir.pakbanmanagement.presentation.main.dialog.ListDialog
 import ir.pakbanmanagement.presentation.main.viewmodel.MainViewModel
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.MapTileProviderBasic
 import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase
-import org.osmdroid.util.BoundingBox
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.util.MapTileIndex.getX
 import org.osmdroid.util.MapTileIndex.getY
@@ -51,6 +54,7 @@ class HomeFragment :
         hashMapOf<String, String>()
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun setOnView() {
         myView.apply {
 
@@ -78,13 +82,14 @@ class HomeFragment :
                 setUseDataConnection(true)
                 setTileSource(getWebSDITileSource())
                 setMultiTouchControls(true)
+                setOnTouchListener { _, _ -> true }
 
                 val mRotationGestureOverlay = RotationGestureOverlay(requireContext(), this)
                 mRotationGestureOverlay.isEnabled = true
                 overlays.add(mRotationGestureOverlay)
 
                 zoomController.apply {
-                    setVisibility(CustomZoomButtonsController.Visibility.NEVER)
+                    setVisibility(CustomZoomButtonsController.Visibility.ALWAYS)
                 }
                 controller.apply {
                     setZoom(20.0)
@@ -114,17 +119,37 @@ class HomeFragment :
                     when (pos) {
                         0 -> {
                             getPriceListSeason { res ->
-                                FineListDialog(
+                                var fineDialog: FineListDialog? = null
+
+                                fineDialog = FineListDialog(
                                     requireContext(),
                                     mJob,
                                     res.data?.toMutableList() ?: mutableListOf()
-                                ) { item ->
-                                    setNavigator(
-                                        FineFragment(
-                                            item
-                                        ), isAddToBackStack = true
-                                    )
-                                }.show()
+                                ) { parent ->
+                                    if (parent.priceListRowDTOs?.isEmpty() == true) {
+                                        setNavigator(
+                                            FineFragment(priceListSeasonDataMapper = parent),
+                                            isAddToBackStack = true
+                                        )
+                                        fineDialog?.dismiss()
+                                    } else {
+                                        "زیر شاخه | ${parent.title}".toastMessage(Constant.ToastType.Info)
+                                        FineChildListDialog(
+                                            requireContext(),
+                                            mJob,
+                                            parent.priceListRowDTOs?.toMutableList()
+                                                ?: mutableListOf()
+                                        ) { child ->
+                                            setNavigator(
+                                                FineFragment(
+                                                    priceListSeasonDataPriceRowDTOsMapper = child
+                                                ), isAddToBackStack = true
+                                            )
+                                            fineDialog?.dismiss()
+                                        }.show()
+                                    }
+                                }
+                                fineDialog.show()
                             }
                         }
                     }
@@ -143,11 +168,9 @@ class HomeFragment :
                     Manifest.permission.ACCESS_COARSE_LOCATION,
                     Manifest.permission.ACCESS_FINE_LOCATION
                 )
-            )
+            ) && hasGpsEnabled()
         ) {
-            requireActivity().checkLocationAndGpsPermissions {
-                findLocation()
-            }
+            findLocation()
         }
     }
 
@@ -159,9 +182,13 @@ class HomeFragment :
                 }
 
                 is Constant.ResultWrapper.Success -> {
-                    mJob.coroutineIO {
-                        val res = it.body.toMapper<UserMapper>()
-                        PrefManager.setUser(res)
+                    mJob.coroutineMain {
+                        try {
+                            val res = it.body.toMapper<UserMapper>()
+                            PrefManager.setUser(res)
+                        } catch (e: Exception) {
+                            "$e".logV()
+                        }
                     }
                 }
 
@@ -204,11 +231,10 @@ class HomeFragment :
                 progressBar.isVisible = false
 
                 location?.let {
-                    location.latitude
-                    location.longitude
-
-//                    val latLng = GeoPoint(latitude, longitude)
-                    val latLng = GeoPoint(36.33356416766867, 59.50458189307316)
+                    val latLng = GeoPoint(
+                        location.latitude, location.longitude
+                    )
+//                    val latLng = GeoPoint(36.33356416766867, 59.50458189307316)
 
                     movetToLocation(latLng)
 
@@ -278,55 +304,6 @@ class HomeFragment :
         }
 
         return customTileSource
-    }
-
-    private fun getSDI2TitleSource(): OnlineTileSourceBase {
-        val mashhadTileSource = object : OnlineTileSourceBase(
-            "MashhadWMS", 0, 19, 256, ".png", arrayOf("https://sditile2.mashhad.ir/geoserver/wms?")
-        ) {
-            override fun getTileURLString(pMapTileIndex: Long): String {
-                val bbox = getBoundingBox(pMapTileIndex)
-                return baseUrl + "service=WMS&version=1.1.1&request=GetMap&" + "layers=MashhadBaseMap1401&" + "bbox=${bbox.lonWest},${bbox.latSouth},${bbox.lonEast},${bbox.latNorth}&" + "width=256&height=256&" + "srs=EPSG:4326&format=image/png&transparent=true"
-            }
-
-            private fun getBoundingBox(pMapTileIndex: Long): BoundingBox {
-                val zoom = getZoom(pMapTileIndex)
-                val x = getX(pMapTileIndex)
-                val y = getY(pMapTileIndex)
-                val n = 1 shl zoom
-
-                val lonPerTile = 360.0 / n
-                val latPerTile = 180.0 / n
-
-                val lonWest = -180 + x * lonPerTile
-                val lonEast = -180 + (x + 1) * lonPerTile
-                val latNorth = 90 - y * latPerTile
-                val latSouth = 90 - (y + 1) * latPerTile
-
-                return BoundingBox(latNorth, lonEast, latSouth, lonWest)
-            }
-        }
-        return mashhadTileSource
-    }
-
-    private fun getSDI2TitleSource2(): OnlineTileSourceBase {
-        val mashhadTileSource = object : OnlineTileSourceBase(
-            "MashhadEPSG900913",
-            0,
-            19,
-            256,
-            ".png",
-            arrayOf("https://sditile2.mashhad.ir/geoserver/gwc/service/tms/1.0.0/MashhadBaseMap1401@EPSG:900913@png/")
-        ) {
-            override fun getTileURLString(pMapTileIndex: Long): String {
-                val zoom = getZoom(pMapTileIndex)
-                val x = getX(pMapTileIndex)
-                val y = getY(pMapTileIndex)
-                val reversedY = (1 shl zoom) - 1 - y
-                return "${baseUrl[0]}$zoom/$x/$reversedY.png"
-            }
-        }
-        return mashhadTileSource
     }
 
     override fun setOnBackPressed(it: FragmentActivity) {

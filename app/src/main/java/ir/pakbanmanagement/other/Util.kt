@@ -2,32 +2,51 @@
 
 package ir.pakbanmanagement.other
 
+import android.Manifest
+import android.animation.ObjectAnimator
+import android.animation.PropertyValuesHolder
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.Outline
+import android.graphics.PorterDuff
+import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.Process
+import android.provider.Settings
+import android.util.Base64
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewOutlineProvider
+import android.view.Window
 import android.view.WindowManager
+import android.view.animation.DecelerateInterpolator
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.ColorRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toDrawable
+import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
@@ -47,13 +66,19 @@ import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import ir.pakbanmanagement.BuildConfig
 import ir.pakbanmanagement.R
-import ir.pakbanmanagement.presentation.activity.MainActivity
+import ir.pakbanmanagement.databinding.LayoutToastMessageBinding
+import ir.pakbanmanagement.presentation.main.activity.MainActivity
+import ir.pakbanmanagement.presentation.main.dialog.SubmitDialog
+import ir.pakbanmanagement.presentation.main.fragment.GrantLocationFragment
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import java.lang.reflect.Type
+import kotlin.jvm.java
 import kotlin.system.exitProcess
 
 abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
@@ -464,7 +489,7 @@ internal fun restartApp() {
     for (activity in activities) {
         activity.finishAndRemoveTask()
     }
-    android.os.Process.killProcess(Process.myPid())
+    Process.killProcess(Process.myPid())
     exitProcess(0)
 }
 
@@ -803,3 +828,242 @@ internal fun String.openBrowser(context: Context) {
     context.startActivity(browserIntent)
 }
 
+@SuppressLint("InflateParams")
+internal fun String?.toastMessage(type: Constant.ToastType? = null) {
+    if (this@toastMessage.isNullOrEmpty()) return
+    val message = this@toastMessage
+    val context = App.appContext
+
+    val layoutToast = LayoutToastMessageBinding.inflate(LayoutInflater.from(context))
+    val fontFamily = ResourcesCompat.getFont(context, R.font.medium)
+
+    val rootView = layoutToast.root
+    layoutToast.apply {
+        rootView.layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+
+        txtToast.apply {
+            typeface = fontFamily
+            text = message
+        }
+        when (type) {
+            Constant.ToastType.Success -> {
+                layoutRoot.setBackgroundColor(getColor(R.color.color_success))
+                txtToast.setTextColor(Color.WHITE)
+            }
+
+            Constant.ToastType.Warning -> {
+                layoutRoot.setBackgroundColor(getColor(R.color.color_warning))
+                txtToast.setTextColor(Color.BLACK)
+            }
+
+            Constant.ToastType.Error -> {
+                layoutRoot.setBackgroundColor(getColor(R.color.color_error))
+                txtToast.setTextColor(Color.WHITE)
+            }
+
+            Constant.ToastType.Info -> {
+                layoutRoot.setBackgroundColor(getColor(R.color.color_info))
+                txtToast.setTextColor(Color.WHITE)
+            }
+
+            else -> {
+                layoutRoot.setBackgroundColor(getColor(R.color.color_gray_dark))
+                txtToast.setTextColor(Color.WHITE)
+            }
+        }
+
+        rootView.translationY = -200f
+        val slideDown = ObjectAnimator.ofPropertyValuesHolder(
+            rootView,
+            PropertyValuesHolder.ofFloat(View.TRANSLATION_Y, -200f, 0f),
+            PropertyValuesHolder.ofFloat(View.ALPHA, 0f, 1f)
+        ).apply {
+            duration = 300
+            interpolator = DecelerateInterpolator()
+        }
+
+        val toast = Toast(context).apply {
+            view = rootView
+            duration = Toast.LENGTH_LONG
+            setGravity(Gravity.TOP or Gravity.FILL_HORIZONTAL, 0, 0)
+        }
+
+        slideDown.start()
+        toast.show()
+    }
+}
+
+internal fun hasGpsEnabled(): Boolean {
+    val locationManager =
+        App.appContext.getSystemService(Context.LOCATION_SERVICE) as android.location.LocationManager
+
+    return locationManager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(
+        LocationManager.NETWORK_PROVIDER
+    )
+}
+
+internal fun hasSinglePermissionGranted(permission: String): Boolean {
+    return ContextCompat.checkSelfPermission(
+        App.appContext, permission
+    ) == PackageManager.PERMISSION_GRANTED
+}
+
+internal fun hasMultiplePermissionsGranted(permissions: List<String>): Boolean {
+    return permissions.all { permission ->
+        ContextCompat.checkSelfPermission(
+            App.appContext, permission
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+}
+
+internal fun FragmentActivity.checkLocationAndGpsPermissions(
+    dismiss: () -> Unit = {}, block: () -> Unit
+) {
+    var dialog: SubmitDialog? = null
+    when {
+        !hasSinglePermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION) -> {
+            dialog?.dismiss()
+            dialog?.cancel()
+            dialog = SubmitDialog(
+                context = this@checkLocationAndGpsPermissions,
+                title = "نیازمند دسترسی!",
+                subTitle = "آیا مایل به فعالسازی موقعیت (Location) هستید؟",
+                negativeText = "خیر",
+                positiveText = "بله",
+                isNegative = true,
+                isCancelable = false,
+                dismiss = {
+                    dismiss.invoke()
+                },
+                block = {
+                    setNavigator(GrantLocationFragment(), isAddToBackStack = true)
+                })
+            dialog.show()
+        }
+
+        !hasSinglePermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION) -> {
+            dialog?.dismiss()
+            dialog?.cancel()
+            dialog = SubmitDialog(
+                context = this@checkLocationAndGpsPermissions,
+                title = "نیازمند دسترسی!",
+                subTitle = "آیا مایل به فعالسازی موقعیت (Location) هستید؟",
+                negativeText = "خیر",
+                positiveText = "بله",
+                isNegative = true,
+                isCancelable = false,
+                dismiss = {
+                    dismiss.invoke()
+                },
+                block = {
+                    setNavigator(GrantLocationFragment(), isAddToBackStack = true)
+                })
+            dialog.show()
+        }
+
+        !hasGpsEnabled() -> {
+            dialog?.dismiss()
+            dialog?.cancel()
+            dialog = SubmitDialog(
+                context = this@checkLocationAndGpsPermissions,
+                title = "نیازمند دسترسی!",
+                subTitle = "آیا مایل به فعالسازی جی پی اس (GPS) هستید؟",
+                negativeText = "خیر",
+                positiveText = "بله",
+                isNegative = true,
+                isCancelable = false,
+                dismiss = {
+                    dismiss.invoke()
+                },
+                block = {
+                    setNavigator(GrantLocationFragment(), isAddToBackStack = true)
+                })
+            dialog.show()
+        }
+
+        else -> {
+            block.invoke()
+        }
+    }
+}
+
+internal fun AppCompatImageView.setImageTint(color: String) {
+    this@setImageTint.setColorFilter(color.toColorInt(), PorterDuff.Mode.SRC_IN)
+}
+
+internal fun AppCompatImageView.setImageTint(@ColorRes color: Int) {
+    this@setImageTint.setColorFilter(getColor(color), PorterDuff.Mode.SRC_IN)
+}
+
+internal fun FragmentActivity.openLocation() {
+    this@openLocation.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+}
+
+internal fun openLocation(locationSettingsLauncher: ActivityResultLauncher<Intent>) {
+    val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+    locationSettingsLauncher.launch(intent)
+}
+
+internal fun FragmentActivity.openAppSetting() {
+    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+    val uri = Uri.fromParts("package", App.appContext.packageName, null)
+    intent.data = uri
+    this@openAppSetting.startActivity(intent)
+}
+
+internal fun Context.getColor2(@ColorRes color: Int): Int {
+    return ContextCompat.getColor(this@getColor2, color)
+}
+
+internal fun getColor(color: String): Int {
+    return color.toColorInt()
+}
+
+internal fun String.toEnglishNumber(): String {
+    var enNumbers = this
+    val mChars = arrayOf(
+        arrayOf("۰", "0"),
+        arrayOf("۱", "1"),
+        arrayOf("۲", "2"),
+        arrayOf("۳", "3"),
+        arrayOf("۴", "4"),
+        arrayOf("۵", "5"),
+        arrayOf("۶", "6"),
+        arrayOf("۷", "7"),
+        arrayOf("۸", "8"),
+        arrayOf("۹", "9"),
+    )
+    for (num in mChars) {
+        enNumbers = enNumbers.replace(num[0], num[1])
+    }
+    return enNumbers
+}
+
+internal open class LoadingDialog(context: Context) : Dialog(context) {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        requestWindowFeature(Window.FEATURE_NO_TITLE)
+        window!!.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+        setContentView(R.layout.layout_loading_dialog)
+        setCancelable(false)
+        setCanceledOnTouchOutside(false)
+    }
+}
+
+internal fun String?.toDecodeByteArray(): ByteArray {
+    return Base64.decode(this@toDecodeByteArray, Base64.DEFAULT)
+}
+
+internal fun InputStream.encodeInputStreamToBase64(): String {
+    val byteArrayOutputStream = ByteArrayOutputStream()
+    val buffer = ByteArray(1024)
+    var len: Int
+    while (this@encodeInputStreamToBase64.read(buffer).also { len = it } != -1) {
+        byteArrayOutputStream.write(buffer, 0, len)
+    }
+    val byteArray = byteArrayOutputStream.toByteArray()
+    return Base64.encodeToString(byteArray, Base64.NO_WRAP)
+}

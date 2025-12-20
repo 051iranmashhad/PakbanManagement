@@ -1,20 +1,15 @@
-package ir.pakbanmanagement.presentation.activity
+package ir.pakbanmanagement.presentation.main.activity
 
 import dagger.hilt.android.AndroidEntryPoint
 import ir.pakbanmanagement.databinding.ActivityAppBinding
 import ir.pakbanmanagement.other.BaseActivity
-import ir.pakbanmanagement.other.logV
 import ir.pakbanmanagement.other.setNavigator
-import ir.pakbanmanagement.presentation.fragment.SplashFragment
+import ir.pakbanmanagement.presentation.main.fragment.SplashFragment
 
 @AndroidEntryPoint
 class AppActivity : BaseActivity<ActivityAppBinding>() {
 
     override fun setOnView() {
-//        val data = intent.data?.getQueryParameter("data")
-//        "$data".logV()
-
-
         setNavigator(SplashFragment())
     }
 
