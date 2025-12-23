@@ -24,6 +24,7 @@ import ir.pakbanmanagement.other.coroutineMain
 import ir.pakbanmanagement.other.hasGpsEnabled
 import ir.pakbanmanagement.other.hasMultiplePermissionsGranted
 import ir.pakbanmanagement.other.logV
+import ir.pakbanmanagement.other.restartApp
 import ir.pakbanmanagement.other.setNavigator
 import ir.pakbanmanagement.other.toMapper
 import ir.pakbanmanagement.other.toastMessage
@@ -193,7 +194,16 @@ class HomeFragment :
                 }
 
                 is Constant.ResultWrapper.Error -> {
+                    it.body.toastMessage()
 
+                    when {
+                        it.code == 401 -> {
+                            mJob.coroutineMain {
+                                PrefManager.deleteUser()
+                                restartApp()
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -236,14 +246,14 @@ class HomeFragment :
                     )
 //                    val latLng = GeoPoint(36.33356416766867, 59.50458189307316)
 
-                    movetToLocation(latLng)
+                    moveToLocation(latLng)
 
                 } ?: "خطا در دریافت موقعیت!".toastMessage(Constant.ToastType.Error)
             }
         }
     }
 
-    private fun movetToLocation(latLng: GeoPoint) {
+    private fun moveToLocation(latLng: GeoPoint) {
         myView.apply {
             mapView.controller.apply {
                 setCenter(latLng)
