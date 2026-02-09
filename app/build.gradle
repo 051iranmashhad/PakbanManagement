@@ -6,11 +6,13 @@ plugins {
     id 'com.google.devtools.ksp'
 }
 
-def javaVersionCode = JavaVersion.VERSION_17
+def jvmTarget = 17
 
 android {
     namespace 'ir.pakbanmanagement'
-    compileSdk 36
+    compileSdk {
+        version = release(36)
+    }
 
     defaultConfig {
         applicationId "ir.pakbanmanagement"
@@ -40,13 +42,8 @@ android {
         }
     }
 
-    compileOptions {
-        sourceCompatibility javaVersionCode
-        targetCompatibility javaVersionCode
-    }
-
-    kotlinOptions {
-        jvmTarget = javaVersionCode as String
+    kotlin {
+        jvmToolchain(jvmTarget)
     }
 
     buildFeatures {
@@ -78,6 +75,9 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.2.0"
     implementation 'com.google.android.material:material:1.13.0'
+
+    implementation 'com.github.kshitijskumar:Ticker:1.0.0'
+    implementation 'id.zelory:compressor:3.0.1'
 
     implementation 'com.github.bumptech.glide:glide:5.0.5'
     ksp 'com.github.bumptech.glide:compiler:5.0.5'

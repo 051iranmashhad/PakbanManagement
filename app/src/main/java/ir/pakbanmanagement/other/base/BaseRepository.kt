@@ -17,7 +17,7 @@ open class BaseRepository @Inject constructor() {
         }
     }
 
-    open suspend fun getUser() = PrefManager.getUser
+    open suspend fun getUser() = PrefManager.getUser.first()
 
     open suspend fun getUser(block: (UserMapper?) -> Unit) {
         withContext(Dispatchers.IO) {
@@ -28,5 +28,5 @@ open class BaseRepository @Inject constructor() {
         }
     }
 
-    open suspend fun getToekn() = PrefManager.getToken.first().token
+    open suspend fun getToken() = PrefManager.getToken.first().token
 }

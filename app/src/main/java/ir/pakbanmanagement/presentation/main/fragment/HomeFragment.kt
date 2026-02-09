@@ -6,13 +6,12 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
-import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentActivity
 import dagger.hilt.android.AndroidEntryPoint
 import ir.pakbanmanagement.R
 import ir.pakbanmanagement.databinding.FragmentHomeBinding
 import ir.pakbanmanagement.mapper.BottomSheetMenuMapper
-import ir.pakbanmanagement.mapper.PriceListSeasonMapper
+import ir.pakbanmanagement.mapper.ContractTitleValueListMapper
 import ir.pakbanmanagement.mapper.UserMapper
 import ir.pakbanmanagement.other.BaseFragmentWithViewModel
 import ir.pakbanmanagement.other.Constant
@@ -21,6 +20,7 @@ import ir.pakbanmanagement.other.LocationManager
 import ir.pakbanmanagement.other.PrefManager
 import ir.pakbanmanagement.other.checkLocationAndGpsPermissions
 import ir.pakbanmanagement.other.coroutineMain
+import ir.pakbanmanagement.other.gone
 import ir.pakbanmanagement.other.hasGpsEnabled
 import ir.pakbanmanagement.other.hasMultiplePermissionsGranted
 import ir.pakbanmanagement.other.logV
@@ -28,15 +28,17 @@ import ir.pakbanmanagement.other.restartApp
 import ir.pakbanmanagement.other.setNavigator
 import ir.pakbanmanagement.other.toMapper
 import ir.pakbanmanagement.other.toastMessage
+import ir.pakbanmanagement.other.visible
 import ir.pakbanmanagement.presentation.main.activity.MainActivity
-import ir.pakbanmanagement.presentation.main.dialog.FineChildListDialog
-import ir.pakbanmanagement.presentation.main.dialog.FineListDialog
 import ir.pakbanmanagement.presentation.main.dialog.ListDialog
 import ir.pakbanmanagement.presentation.main.viewmodel.MainViewModel
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.MapTileProviderBasic
 import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase
+import org.osmdroid.tileprovider.tilesource.XYTileSource
+import org.osmdroid.util.BoundingBox
 import org.osmdroid.util.GeoPoint
+import org.osmdroid.util.MapTileIndex
 import org.osmdroid.util.MapTileIndex.getX
 import org.osmdroid.util.MapTileIndex.getY
 import org.osmdroid.util.MapTileIndex.getZoom
@@ -51,9 +53,11 @@ class HomeFragment :
     private val mLoadingDialog: LoadingDialog by lazy {
         LoadingDialog(requireContext())
     }
-    private val mQueryParam by lazy {
-        hashMapOf<String, String>()
-    }
+
+    private var mLatLng: GeoPoint? = GeoPoint(36.33356416766867, 59.50458189307316)
+    private var mContractId: Int? = null
+
+    private var mContractTitleValueListMapper: ContractTitleValueListMapper? = null
 
     @SuppressLint("ClickableViewAccessibility")
     override fun setOnView() {
@@ -81,13 +85,21 @@ class HomeFragment :
                 }
 
                 setUseDataConnection(true)
-                setTileSource(getWebSDITileSource())
-                setMultiTouchControls(true)
-                setOnTouchListener { _, _ -> true }
 
-                val mRotationGestureOverlay = RotationGestureOverlay(requireContext(), this)
-                mRotationGestureOverlay.isEnabled = true
-                overlays.add(mRotationGestureOverlay)
+//                val mashhadBox = BoundingBox(36.5, 59.9, 35.9, 59.1)
+//                setScrollableAreaLimitDouble(mashhadBox)
+//                isHorizontalMapRepetitionEnabled = false
+//                isVerticalMapRepetitionEnabled = false
+
+//                setTileSource(getWebSDITileSource())
+                setTileSource(getMashhadTileSource())
+
+                setMultiTouchControls(true)
+//                setOnTouchListener { _, _ -> true }
+
+//                val mRotationGestureOverlay = RotationGestureOverlay(requireContext(), this)
+//                mRotationGestureOverlay.isEnabled = true
+//                overlays.add(mRotationGestureOverlay)
 
                 zoomController.apply {
                     setVisibility(CustomZoomButtonsController.Visibility.ALWAYS)
@@ -97,11 +109,11 @@ class HomeFragment :
                     setCenter(GeoPoint(36.33356416766867, 59.50458189307316))
                 }
 
-                isTilesScaledToDpi = false
-                overlayManager.tilesOverlay.setUseDataConnection(true)
+//                isTilesScaledToDpi = false
+//                overlayManager.tilesOverlay.setUseDataConnection(true)
 
-                val provider = MapTileProviderBasic(requireContext())
-                provider.setUseDataConnection(true)
+//                val provider = MapTileProviderBasic(requireContext())
+//                provider.setUseDataConnection(true)
             }
 
             fabFindLocation.setOnClickListener {
@@ -111,50 +123,38 @@ class HomeFragment :
             }
 
             btnSubmit.setOnClickListener {
-                val list = mutableListOf<BottomSheetMenuMapper>().apply {
-                    add(BottomSheetMenuMapper(title = "ثبت جریمه"))
-                }
-                ListDialog(
-                    context = requireContext(), list = list
-                ) { pos ->
-                    when (pos) {
-                        0 -> {
-                            getPriceListSeason { res ->
-                                var fineDialog: FineListDialog? = null
+                when {
+                    mContractId == null -> {
+                        "لطفا پیمان خود را انتخاب کنید.".toastMessage(Constant.ToastType.Info)
+                    }
 
-                                fineDialog = FineListDialog(
-                                    requireContext(),
-                                    mJob,
-                                    res.data?.toMutableList() ?: mutableListOf()
-                                ) { parent ->
-                                    if (parent.priceListRowDTOs?.isEmpty() == true) {
-                                        setNavigator(
-                                            FineFragment(priceListSeasonDataMapper = parent),
-                                            isAddToBackStack = true
-                                        )
-                                        fineDialog?.dismiss()
-                                    } else {
-                                        "زیر شاخه | ${parent.title}".toastMessage(Constant.ToastType.Info)
-                                        FineChildListDialog(
-                                            requireContext(),
-                                            mJob,
-                                            parent.priceListRowDTOs?.toMutableList()
-                                                ?: mutableListOf()
-                                        ) { child ->
-                                            setNavigator(
-                                                FineFragment(
-                                                    priceListSeasonDataPriceRowDTOsMapper = child
-                                                ), isAddToBackStack = true
-                                            )
-                                            fineDialog?.dismiss()
-                                        }.show()
-                                    }
-                                }
-                                fineDialog.show()
-                            }
+                    mLatLng == null -> {
+                        "لطفا موقعیت خود را مشخص کنید.".toastMessage(Constant.ToastType.Info)
+                        requireActivity().checkLocationAndGpsPermissions {
+                            findLocation()
                         }
                     }
-                }.show()
+
+                    else -> setNavigator(
+                        FineFragment(mLatLng, mContractId), isAddToBackStack = true
+                    )
+                }
+            }
+
+            (requireActivity() as MainActivity).getContractLayout().setOnClickListener {
+                getContractTitleValue()
+            }
+        }
+
+        mJob.coroutineMain {
+            val user = mViewModel.getUser()
+            if (user.contractId == null) getContractTitleValue()
+            else {
+                (requireActivity() as MainActivity).setContractData(
+                    user.contractTitle,
+                    user.contractId
+                )
+                mContractId = user.contractId
             }
         }
 
@@ -170,9 +170,7 @@ class HomeFragment :
                     Manifest.permission.ACCESS_FINE_LOCATION
                 )
             ) && hasGpsEnabled()
-        ) {
-            findLocation()
-        }
+        ) findLocation()
     }
 
     private fun getUserInfo() {
@@ -186,7 +184,12 @@ class HomeFragment :
                     mJob.coroutineMain {
                         try {
                             val res = it.body.toMapper<UserMapper>()
-                            PrefManager.setUser(res)
+
+                            val user = mViewModel.getUser()
+                            res.contractId = user.contractId
+                            res.contractTitle = user.contractTitle
+
+                            mViewModel.setUser(res)
                         } catch (e: Exception) {
                             "$e".logV()
                         }
@@ -194,8 +197,6 @@ class HomeFragment :
                 }
 
                 is Constant.ResultWrapper.Error -> {
-                    it.body.toastMessage()
-
                     when {
                         it.code == 401 -> {
                             mJob.coroutineMain {
@@ -203,14 +204,18 @@ class HomeFragment :
                                 restartApp()
                             }
                         }
+
+                        else -> {
+//                            it.body.toastMessage()
+                        }
                     }
                 }
             }
         }
     }
 
-    private fun getPriceListSeason(block: (PriceListSeasonMapper) -> Unit) {
-        mViewModel.getPriceListSeason(mJob, mQueryParam) {
+    private fun getContractTitleValue() {
+        mViewModel.getContractTitleValue(mJob) {
             when (it) {
                 Constant.ResultWrapper.Loading -> {
                     mLoadingDialog.show()
@@ -219,15 +224,73 @@ class HomeFragment :
                 is Constant.ResultWrapper.Success -> {
                     mLoadingDialog.dismiss()
 
-                    val res = it.body.toMapper<PriceListSeasonMapper>()
+                    try {
+                        val res = it.body.toMapper<ContractTitleValueListMapper>()
+                        mContractTitleValueListMapper = res
 
-                    if (res.success == true) block.invoke(res)
-                    else "لیست جریمه ها دریافت نشد!".toastMessage(Constant.ToastType.Warning)
+                        when {
+                            mContractTitleValueListMapper?.data?.isEmpty() == true -> {
+                                "لیست پیمان ها خالی است!".toastMessage(Constant.ToastType.Warning)
+                            }
+
+                            mContractTitleValueListMapper?.data?.size == 1 -> {
+                                val item = mContractTitleValueListMapper?.data?.first()
+                                mContractId = item?.value
+
+                                mJob.coroutineMain {
+                                    mViewModel.setUser(
+                                        mViewModel.getUser().copy(
+                                            contractTitle = item?.title,
+                                            contractId = item?.value
+                                        )
+                                    )
+                                }
+                                (requireActivity() as MainActivity).setContractData(
+                                    item?.title,
+                                    item?.value
+                                )
+                            }
+
+                            else -> {
+                                val list = res.data
+                                    ?.map {
+                                        BottomSheetMenuMapper(
+                                            title = "${it.title}",
+                                            key = "${it.value}"
+                                        )
+                                    }
+                                    ?.toMutableList() ?: mutableListOf()
+
+                                ListDialog(
+                                    context = requireContext(), list = list, isCancelable = false
+                                ) { pos ->
+                                    val item = mContractTitleValueListMapper?.data?.get(pos)
+                                    mContractId = item?.value
+
+                                    mJob.coroutineMain {
+                                        mViewModel.setUser(
+                                            mViewModel.getUser().copy(
+                                                contractTitle = item?.title,
+                                                contractId = item?.value
+                                            )
+                                        )
+                                    }
+                                    (requireActivity() as MainActivity).setContractData(
+                                        item?.title,
+                                        item?.value
+                                    )
+                                }.show()
+                            }
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        "خطا در دریافت پیمان!".toastMessage(Constant.ToastType.Error)
+                    }
                 }
 
                 is Constant.ResultWrapper.Error -> {
                     mLoadingDialog.dismiss()
-                    "حطا در دریافت اطلاعات | ${it.code}".toastMessage()
+                    "خطا در دریافت پیمان!".toastMessage(Constant.ToastType.Error)
                 }
             }
         }
@@ -235,20 +298,19 @@ class HomeFragment :
 
     private fun findLocation() {
         myView.apply {
-            progressBar.isVisible = true
+            progressBar.visible()
 
             LocationManager.getCurrentLocation { location ->
-                progressBar.isVisible = false
+                progressBar.gone()
 
-                location?.let {
-                    val latLng = GeoPoint(
+                if (location == null) "خطا در دریافت موقعیت!".toastMessage(Constant.ToastType.Error)
+                else {
+                    mLatLng = GeoPoint(
                         location.latitude, location.longitude
                     )
-//                    val latLng = GeoPoint(36.33356416766867, 59.50458189307316)
 
-                    moveToLocation(latLng)
-
-                } ?: "خطا در دریافت موقعیت!".toastMessage(Constant.ToastType.Error)
+                    mLatLng?.let { moveToLocation(it) }
+                }
             }
         }
     }
@@ -314,6 +376,36 @@ class HomeFragment :
         }
 
         return customTileSource
+    }
+
+    private fun getMashhadTileSource(): OnlineTileSourceBase {
+        return object : OnlineTileSourceBase(
+            "MashhadMap",
+            0,      // Minimum Zoom
+            18,     // Maximum Zoom (Adjust based on your GeoServer config)
+            256,    // Tile size in pixels
+            ".png",
+            arrayOf("http://basemap.mashhad.ir/geoserver/gwc/service/tms/1.0.0/")
+        ) {
+            override fun getTileURLString(pMapTileIndex: Long): String {
+                val z = getZoom(pMapTileIndex)
+                val x = getX(pMapTileIndex)
+                val y = getY(pMapTileIndex)
+
+                /**
+                 * GeoServer TMS uses the South-to-North Y axis.
+                 * To convert standard XYZ (used by Osmdroid) to TMS,
+                 * we use the formula: invertedY = (2^zoom - 1) - y
+                 */
+                val invertedY = (1 shl z) - 1 - y
+
+                // Ensure the baseUrl ends with a slash if not already present
+                val base = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
+
+                // Constructing the path based on your GeoServer layer name
+                return "${base}MashhadBaseMap1401@WebMercatorQuad@png/$z/$x/$invertedY.png"
+            }
+        }
     }
 
     override fun setOnBackPressed(it: FragmentActivity) {

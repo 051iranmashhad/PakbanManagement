@@ -2,6 +2,7 @@ package ir.pakbanmanagement.presentation.main.activity
 
 import android.content.res.Resources
 import android.view.Gravity
+import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
@@ -18,6 +19,7 @@ import ir.pakbanmanagement.other.restartApp
 import ir.pakbanmanagement.other.setNavigator
 import ir.pakbanmanagement.presentation.main.adapter.MenuAdapter
 import ir.pakbanmanagement.presentation.main.dialog.SubmitDialog
+import ir.pakbanmanagement.presentation.main.fragment.HistoryFineListFragment
 import ir.pakbanmanagement.presentation.main.fragment.HomeFragment
 import ir.pakbanmanagement.presentation.main.fragment.ProfileFragment
 import ir.pakbanmanagement.presentation.main.viewmodel.MainViewModel
@@ -59,6 +61,10 @@ class MainActivity :
                         setNavigator(ProfileFragment(), isAddToBackStack = true)
                     }
 
+                    Constant.MenuKey.FINE_LIST -> {
+                        setNavigator(HistoryFineListFragment(), isAddToBackStack = true)
+                    }
+
                     Constant.MenuKey.LOG_OUT -> {
                         SubmitDialog(
                             context = this@MainActivity,
@@ -90,6 +96,22 @@ class MainActivity :
 
     internal fun closeDrawer() {
         myView.layoutDrawer.closeDrawer(Gravity.RIGHT)
+    }
+
+    internal fun getContractLayout(): LinearLayoutCompat {
+        return myView.layoutContract
+    }
+
+    internal fun setContractData(
+        contractTitle: String? = null,
+        contractId: Int? = null,
+    ) {
+        myView.apply {
+            txtContract.apply {
+                text = contractTitle
+                tag = "$contractId"
+            }
+        }
     }
 
     private fun setBackStackHandler() {

@@ -4,6 +4,9 @@ package ir.pakbanmanagement.mapper
 import com.google.gson.annotations.SerializedName
 
 data class UserMapper(
+    var contractTitle: String? = null,
+    var contractId: Int? = null,
+
     @SerializedName("data")
     val `data`: Data? = null,
     @SerializedName("error")
@@ -13,7 +16,7 @@ data class UserMapper(
     @SerializedName("success")
     val success: Boolean? = null, // true
     @SerializedName("token")
-    val token: String? = null
+    val token: String? = null,
 ) {
     data class Data(
         @SerializedName("address")
@@ -43,6 +46,6 @@ data class UserMapper(
         @SerializedName("userRoles")
         val userRoles: Any? = null, // null
         @SerializedName("username")
-        val username: String? = null // 5456454@manmail.ir
+        val username: String? = null, // 5456454@manmail.ir
     )
 }

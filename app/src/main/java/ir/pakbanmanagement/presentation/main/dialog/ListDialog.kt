@@ -11,6 +11,7 @@ import ir.pakbanmanagement.presentation.main.adapter.BottomSheetMenuAdapter
 class ListDialog(
     internal val context: Context,
     private val list: MutableList<BottomSheetMenuMapper>,
+    private val isCancelable: Boolean = true,
     private val block: (Int) -> Unit = {},
 ) : BaseBottomSheetDialog<BottomSheetMenuBinding>(context) {
 
@@ -18,6 +19,9 @@ class ListDialog(
 
     override fun setOnView() {
         myView.apply {
+            setCancelable(isCancelable)
+            setCanceledOnTouchOutside(isCancelable)
+
             imgCancel.setOnClickListener {
                 dismiss()
             }

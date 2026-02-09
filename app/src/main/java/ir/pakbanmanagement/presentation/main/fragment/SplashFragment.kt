@@ -3,14 +3,12 @@ package ir.pakbanmanagement.presentation.main.fragment
 import android.net.Uri
 import androidx.fragment.app.FragmentActivity
 import dagger.hilt.android.AndroidEntryPoint
-import ir.pakbanmanagement.R
 import ir.pakbanmanagement.databinding.FragmentSplashBinding
 import ir.pakbanmanagement.mapper.TokenMapper
 import ir.pakbanmanagement.other.BaseFragment
 import ir.pakbanmanagement.other.Constant
 import ir.pakbanmanagement.other.PrefManager
 import ir.pakbanmanagement.other.coroutineMain
-import ir.pakbanmanagement.other.getColor
 import ir.pakbanmanagement.other.getVersionName
 import ir.pakbanmanagement.other.hasDebug
 import ir.pakbanmanagement.other.isNetworkAvailable
@@ -93,7 +91,7 @@ class SplashFragment : BaseFragment<FragmentSplashBinding>() {
         mJob.coroutineMain {
             if (PrefManager.getToken.first().token.isNullOrEmpty()) getIntent()
             else {
-                delay(1500)
+//                delay(1500)
                 requireActivity().launchActivityAndFinish<MainActivity>()
             }
         }

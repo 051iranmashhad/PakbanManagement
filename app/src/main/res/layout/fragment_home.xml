@@ -83,7 +83,7 @@
             android:fontFamily="@font/medium"
             android:gravity="center"
             android:padding="@dimen/_10sdp"
-            android:text="انتخاب عملیات"
+            android:text="ثبت جریمه"
             android:textColor="@color/color_white"
             android:textSize="@dimen/_14ssp"
             app:fontFamily="@font/medium" />

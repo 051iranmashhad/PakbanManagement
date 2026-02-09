@@ -26,12 +26,16 @@ object Constant {
 
     object MenuKey {
         internal const val PROFILE = "profile"
+        internal const val FINE_LIST = "fine_list"
         internal const val LOG_OUT = "log_out"
     }
 
     internal val menuList = mutableListOf(
         MenuMapper(
             id = MenuKey.PROFILE, title = "پروفایل", icon = R.drawable.ic_user
+        ),
+        MenuMapper(
+            id = MenuKey.FINE_LIST, title = "تاریخچه جرایم", icon = R.drawable.ic_info
         ),
         MenuMapper(
             id = MenuKey.LOG_OUT, title = "خروج", icon = R.drawable.ic_log_out
@@ -72,6 +76,8 @@ object Constant {
 
         internal const val TOKEN = "token"
         internal const val DATA = "data"
+
+        internal const val DATE = "date"
 
         internal const val MOBILE_NUMBER = "mobile_number"
 

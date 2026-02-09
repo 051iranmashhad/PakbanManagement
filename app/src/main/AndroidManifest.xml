@@ -7,7 +7,6 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-
     <!-- android 14 and higher -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
@@ -29,14 +28,19 @@
         android:roundIcon="@drawable/ic_municipality"
         android:supportsRtl="false"
         android:theme="@style/Theme.PakbanManagement"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        tools:targetApi="33">
 
         <activity
             android:name=".presentation.main.activity.MainActivity"
-            android:exported="false" />
+            android:alwaysRetainTaskState="true"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".presentation.main.activity.AppActivity"
-            android:exported="true">
+            android:alwaysRetainTaskState="true"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -57,5 +61,4 @@
             </intent-filter>
         </activity>
     </application>
-
 </manifest>

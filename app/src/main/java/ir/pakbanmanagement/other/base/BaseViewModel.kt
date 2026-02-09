@@ -32,7 +32,7 @@ open class BaseViewModel @Inject constructor(
         }
     }
 
-    internal open suspend fun getUser() = mBaseRepository.getUser().first()
+    internal open suspend fun getUser() = mBaseRepository.getUser()
 
-    internal open suspend fun getToken() = mBaseRepository.getToekn()
+    internal open suspend fun getToken() = mBaseRepository.getToken()
 }

@@ -13,6 +13,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Resources
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Outline
 import android.graphics.PorterDuff
@@ -48,6 +49,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -63,10 +65,17 @@ import com.google.android.gms.security.ProviderInstaller
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
+import id.zelory.compressor.Compressor
+import id.zelory.compressor.constraint.format
+import id.zelory.compressor.constraint.quality
+import id.zelory.compressor.constraint.resolution
+import id.zelory.compressor.constraint.size
 import ir.pakbanmanagement.BuildConfig
 import ir.pakbanmanagement.R
 import ir.pakbanmanagement.databinding.LayoutToastMessageBinding
+import ir.pakbanmanagement.other.date.PersianDate
 import ir.pakbanmanagement.presentation.main.activity.MainActivity
 import ir.pakbanmanagement.presentation.main.dialog.SubmitDialog
 import ir.pakbanmanagement.presentation.main.fragment.GrantLocationFragment
@@ -76,8 +85,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 import java.io.InputStream
 import java.lang.reflect.Type
+import java.text.SimpleDateFormat
+import java.util.Locale
+import kotlin.compareTo
 import kotlin.jvm.java
 import kotlin.system.exitProcess
 
@@ -1066,4 +1080,116 @@ internal fun InputStream.encodeInputStreamToBase64(): String {
     }
     val byteArray = byteArrayOutputStream.toByteArray()
     return Base64.encodeToString(byteArray, Base64.NO_WRAP)
+}
+
+internal fun View.visible() {
+    this@visible.visibility = View.VISIBLE
+}
+
+internal fun View.invisible() {
+    this@invisible.visibility = View.INVISIBLE
+}
+
+internal fun View.gone() {
+    this@gone.visibility = View.GONE
+}
+
+internal fun getLocalTime(): String {
+    val date = PersianDate()
+    return "${if (date.hour < 10) "0" + date.hour else date.hour}:${if (date.minute < 10) "0" + date.minute else date.minute}"
+}
+
+internal fun getLocalDate(): String {
+    val date = PersianDate()
+    return "${date.shYear}/${if (date.shMonth < 10) "0" + date.shMonth else date.shMonth}/${if (date.shDay < 10) "0" + date.shDay else date.shDay}"
+}
+
+internal fun String.persianToGregorian(
+    outputPattern: String = "yyyy-MM-dd HH:mm"
+): String {
+    return try {
+        val parts = this.trim().split(" ", "/", ":")
+
+        val persianDate = PersianDate().initJalaliDate(
+            parts[0].toInt(), // year
+            parts[1].toInt(), // month
+            parts[2].toInt(), // day
+            parts[3].toInt(), // hour
+            parts[4].toInt(), // minute
+            0
+        )
+
+        val formatter = SimpleDateFormat(outputPattern, Locale.US)
+        formatter.format(persianDate.toDate())
+    } catch (e: Exception) {
+        ""
+    }
+}
+
+internal fun String.persianToGregorian2(
+    outputPattern: String = "yyyy-MM-dd"
+): String {
+    return try {
+        val parts = this.trim().split("/")
+
+        val persianDate = PersianDate().initJalaliDate(
+            parts[0].toInt(), // year
+            parts[1].toInt(), // month
+            parts[2].toInt(), // day
+        )
+
+        val formatter = SimpleDateFormat(outputPattern, Locale.US)
+        formatter.format(persianDate.toDate())
+    } catch (e: Exception) {
+        ""
+    }
+}
+
+internal fun AppCompatImageView.setImageBase64(
+    input: String,
+) {
+    val imageBytes = Base64.decode(input, Base64.DEFAULT)
+    val decodedImage = android.graphics.BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+    this@setImageBase64.setImageBitmap(decodedImage)
+}
+
+internal suspend fun uriToCompressedBase64(
+    context: Context,
+    uri: Uri
+): String {
+    val inputStream = context.contentResolver.openInputStream(uri)
+        ?: throw IllegalArgumentException()
+
+    val tempFile = File(context.cacheDir, "img_${System.currentTimeMillis()}")
+    inputStream.use { input ->
+        FileOutputStream(tempFile).use { output ->
+            input.copyTo(output)
+        }
+    }
+
+    val compressedFile = Compressor.compress(context, tempFile) {
+        format(Bitmap.CompressFormat.JPEG)
+        quality(80)
+        resolution(1280, 1280)
+        size(500_000) // 500 KB
+    }
+
+    return Base64.encodeToString(
+        compressedFile.readBytes(),
+        Base64.NO_WRAP
+    )
+}
+
+internal fun Any.toJsonTree(): JsonElement {
+    val type: Type = object : TypeToken<Any?>() {}.type
+    val builder = GsonBuilder()
+    builder.serializeNulls()
+    builder.setLenient()
+    val gson = builder.setPrettyPrinting().create()
+    val jsonElement: JsonElement = try {
+        gson.toJsonTree(this@toJsonTree, type)
+    } catch (e: Exception) {
+        gson.toJsonTree("{}", type)
+    }
+    return jsonElement
 }

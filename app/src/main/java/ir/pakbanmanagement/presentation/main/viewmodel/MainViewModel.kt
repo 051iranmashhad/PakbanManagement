@@ -36,13 +36,62 @@ MainViewModel @Inject constructor(
         }
     }
 
-    internal fun getPriceListSeason(
+    internal fun getContractTitleValue(
+        supervisor: CompletableJob,
+        block: (Constant.ResultWrapper) -> Unit,
+    ) {
+        viewModelScope.launch(supervisor) {
+            NetworkManager.httpParser(block) { mMainRepository.getContractTitleValue() }
+        }
+    }
+
+    internal fun getSegmentTitleValueByContract(
         supervisor: CompletableJob,
         map: HashMap<String, String>,
         block: (Constant.ResultWrapper) -> Unit,
     ) {
         viewModelScope.launch(supervisor) {
-            NetworkManager.httpParser(block) { mMainRepository.getPriceListSeason(map) }
+            NetworkManager.httpParser(block) { mMainRepository.getSegmentTitleValueByContract(map) }
+        }
+    }
+
+    internal fun getEstimateDetails(
+        supervisor: CompletableJob,
+        map: HashMap<String, String>,
+        block: (Constant.ResultWrapper) -> Unit,
+    ) {
+        viewModelScope.launch(supervisor) {
+            NetworkManager.httpParser(block) { mMainRepository.getEstimateDetails(map) }
+        }
+    }
+
+    internal fun getFinancialEndPenalty(
+        supervisor: CompletableJob,
+        map: HashMap<String, String>,
+        block: (Constant.ResultWrapper) -> Unit,
+    ) {
+        viewModelScope.launch(supervisor) {
+            NetworkManager.httpParser(block) { mMainRepository.getFinancialEndPenalty(map) }
+        }
+    }
+
+    internal fun saveRequestSupervisionSpecialFine(
+        supervisor: CompletableJob,
+        map: HashMap<String, String>,
+        block: (Constant.ResultWrapper) -> Unit,
+    ) {
+        viewModelScope.launch(supervisor) {
+            NetworkManager.httpParser(block) { mMainRepository.saveRequestSupervisionSpecialFine(map) }
+        }
+    }
+
+    internal fun getDetailByContractId(
+        supervisor: CompletableJob,
+        map: HashMap<String, String>,
+        block: (Constant.ResultWrapper) -> Unit,
+    ) {
+        viewModelScope.launch(supervisor) {
+            NetworkManager.httpParser(block) { mMainRepository.getDetailByContractId(map) }
         }
     }
 }

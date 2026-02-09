@@ -7,11 +7,10 @@
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:background="@color/color_white"
         android:gravity="center"
-        android:orientation="vertical"
-        app:layout_constraintTop_toTopOf="parent">
+        android:orientation="vertical">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -53,8 +52,9 @@
             android:gravity="center"
             android:hint="جستجو..."
             android:inputType="text"
+            android:maxLength="100"
             android:maxLines="1"
-            android:padding="@dimen/_10sdp"
+            android:padding="@dimen/_12sdp"
             android:textColor="@color/color_black"
             android:textColorHint="@color/color_gray"
             android:textSize="@dimen/_12ssp" />
@@ -76,11 +76,14 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             android:layout_marginTop="@dimen/_8sdp"
+            android:layout_weight="1"
+            android:background="@color/color_gray_light"
             android:clipChildren="true"
             android:clipToPadding="true"
-            android:overScrollMode="ifContentScrolls" />
+            android:overScrollMode="ifContentScrolls"
+            android:padding="@dimen/_4sdp" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
