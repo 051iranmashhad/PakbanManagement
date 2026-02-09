@@ -33,17 +33,12 @@ import ir.pakbanmanagement.presentation.main.activity.MainActivity
 import ir.pakbanmanagement.presentation.main.dialog.ListDialog
 import ir.pakbanmanagement.presentation.main.viewmodel.MainViewModel
 import org.osmdroid.config.Configuration
-import org.osmdroid.tileprovider.MapTileProviderBasic
 import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase
-import org.osmdroid.tileprovider.tilesource.XYTileSource
-import org.osmdroid.util.BoundingBox
 import org.osmdroid.util.GeoPoint
-import org.osmdroid.util.MapTileIndex
 import org.osmdroid.util.MapTileIndex.getX
 import org.osmdroid.util.MapTileIndex.getY
 import org.osmdroid.util.MapTileIndex.getZoom
 import org.osmdroid.views.CustomZoomButtonsController
-import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
 import java.io.File
 
 @AndroidEntryPoint
@@ -86,20 +81,9 @@ class HomeFragment :
 
                 setUseDataConnection(true)
 
-//                val mashhadBox = BoundingBox(36.5, 59.9, 35.9, 59.1)
-//                setScrollableAreaLimitDouble(mashhadBox)
-//                isHorizontalMapRepetitionEnabled = false
-//                isVerticalMapRepetitionEnabled = false
-
-//                setTileSource(getWebSDITileSource())
                 setTileSource(getMashhadTileSource())
 
                 setMultiTouchControls(true)
-//                setOnTouchListener { _, _ -> true }
-
-//                val mRotationGestureOverlay = RotationGestureOverlay(requireContext(), this)
-//                mRotationGestureOverlay.isEnabled = true
-//                overlays.add(mRotationGestureOverlay)
 
                 zoomController.apply {
                     setVisibility(CustomZoomButtonsController.Visibility.ALWAYS)
@@ -108,12 +92,6 @@ class HomeFragment :
                     setZoom(20.0)
                     setCenter(GeoPoint(36.33356416766867, 59.50458189307316))
                 }
-
-//                isTilesScaledToDpi = false
-//                overlayManager.tilesOverlay.setUseDataConnection(true)
-
-//                val provider = MapTileProviderBasic(requireContext())
-//                provider.setUseDataConnection(true)
             }
 
             fabFindLocation.setOnClickListener {
@@ -253,10 +231,10 @@ class HomeFragment :
 
                             else -> {
                                 val list = res.data
-                                    ?.map {
+                                    ?.map { item ->
                                         BottomSheetMenuMapper(
-                                            title = "${it.title}",
-                                            key = "${it.value}"
+                                            title = "${item.title}",
+                                            key = "${item.value}"
                                         )
                                     }
                                     ?.toMutableList() ?: mutableListOf()
@@ -352,30 +330,6 @@ class HomeFragment :
             imgMarker.startAnimation(scaleUp)
 
         }
-    }
-
-    private fun getWebSDITileSource(): OnlineTileSourceBase {
-        val customTileSource = object : OnlineTileSourceBase(
-            "MashhadCustomMap",
-            10,
-            25,
-            256,
-            ".png",
-            arrayOf("https://websdi.mashhad.ir/api/embed/basemaps/57/proxy/")
-        ) {
-            override fun getTileURLString(pMapTileIndex: Long): String {
-                val zoom = getZoom(pMapTileIndex)
-                val x = getX(pMapTileIndex)
-                val y = getY(pMapTileIndex)
-
-                val invertedY = (1 shl zoom) - 1 - y
-                val token = "5f1db2d3-f5c1-419a-9670-5407f4c90abb"
-
-                return "$baseUrl?token=$token&x=$x&y=$invertedY&z=$zoom"
-            }
-        }
-
-        return customTileSource
     }
 
     private fun getMashhadTileSource(): OnlineTileSourceBase {
