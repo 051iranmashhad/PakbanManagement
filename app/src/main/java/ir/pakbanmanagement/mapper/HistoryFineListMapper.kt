@@ -7,13 +7,11 @@ data class HistoryFineListMapper(
     @SerializedName("data")
     val `data`: Data? = null,
     @SerializedName("error")
-    val error: String? = null, // null
+    val error: Any? = null, // null
     @SerializedName("message")
     val message: String? = null, // عملیات با موفقیت انجام گردید.
     @SerializedName("success")
-    val success: Boolean? = null, // true
-    @SerializedName("token")
-    val token: String? = null
+    val success: Boolean? = null,
 ) {
     data class Data(
         @SerializedName("actionID")
