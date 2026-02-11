@@ -4,14 +4,17 @@ package ir.pakbanmanagement.presentation.main.fragment
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.view.MotionEvent
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import dagger.hilt.android.AndroidEntryPoint
 import ir.pakbanmanagement.R
 import ir.pakbanmanagement.databinding.FragmentHomeBinding
 import ir.pakbanmanagement.mapper.BottomSheetMenuMapper
 import ir.pakbanmanagement.mapper.ContractTitleValueListMapper
+import ir.pakbanmanagement.mapper.HistoryFineListMapper
 import ir.pakbanmanagement.mapper.UserMapper
 import ir.pakbanmanagement.other.BaseFragmentWithViewModel
 import ir.pakbanmanagement.other.Constant
@@ -20,14 +23,17 @@ import ir.pakbanmanagement.other.LocationManager
 import ir.pakbanmanagement.other.PrefManager
 import ir.pakbanmanagement.other.checkLocationAndGpsPermissions
 import ir.pakbanmanagement.other.coroutineMain
+import ir.pakbanmanagement.other.getLocalDate
 import ir.pakbanmanagement.other.gone
 import ir.pakbanmanagement.other.hasGpsEnabled
 import ir.pakbanmanagement.other.hasMultiplePermissionsGranted
 import ir.pakbanmanagement.other.logV
+import ir.pakbanmanagement.other.persianToGregorian2
 import ir.pakbanmanagement.other.restartApp
 import ir.pakbanmanagement.other.setNavigator
 import ir.pakbanmanagement.other.toMapper
 import ir.pakbanmanagement.other.toastMessage
+import ir.pakbanmanagement.other.view.CustomInfoWindow
 import ir.pakbanmanagement.other.visible
 import ir.pakbanmanagement.presentation.main.activity.MainActivity
 import ir.pakbanmanagement.presentation.main.dialog.ListDialog
@@ -39,6 +45,8 @@ import org.osmdroid.util.MapTileIndex.getX
 import org.osmdroid.util.MapTileIndex.getY
 import org.osmdroid.util.MapTileIndex.getZoom
 import org.osmdroid.views.CustomZoomButtonsController
+import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.infowindow.InfoWindow
 import java.io.File
 
 @AndroidEntryPoint
@@ -47,6 +55,12 @@ class HomeFragment :
 
     private val mLoadingDialog: LoadingDialog by lazy {
         LoadingDialog(requireContext())
+    }
+    private val mQueryParam by lazy {
+        hashMapOf<String, String>()
+    }
+    private val mMarkerList by lazy {
+        mutableListOf<Marker>()
     }
 
     private var mLatLng: GeoPoint? = GeoPoint(36.33356416766867, 59.50458189307316)
@@ -133,6 +147,7 @@ class HomeFragment :
                     user.contractId
                 )
                 mContractId = user.contractId
+                getDetailByContractId()
             }
         }
 
@@ -223,6 +238,9 @@ class HomeFragment :
                                         )
                                     )
                                 }
+
+                                getDetailByContractId()
+
                                 (requireActivity() as MainActivity).setContractData(
                                     item?.title,
                                     item?.value
@@ -274,6 +292,32 @@ class HomeFragment :
         }
     }
 
+    private fun getDetailByContractId() {
+        mQueryParam[Constant.Key.ID] = "$mContractId"
+        mQueryParam[Constant.Key.DATE] = getLocalDate().persianToGregorian2("yyyy-MM-dd")
+        mViewModel.getDetailByContractId(mJob, mQueryParam) {
+            when (it) {
+                Constant.ResultWrapper.Loading -> {
+                }
+
+                is Constant.ResultWrapper.Success -> {
+                    try {
+                        val res = it.body.toMapper<HistoryFineListMapper>()
+
+                        if (res.success == true) {
+                            addMarkers(res.data?.supSepcialFineDetails ?: listOf())
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+
+                is Constant.ResultWrapper.Error -> {
+                }
+            }
+        }
+    }
+
     private fun findLocation() {
         myView.apply {
             progressBar.visible()
@@ -300,6 +344,62 @@ class HomeFragment :
                 setZoom(19.7)
             }
         }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun addMarkers(list: List<HistoryFineListMapper.Data.SupSepcialFineDetail>) {
+        val map = myView.mapView
+
+        clearMarkers()
+
+        InfoWindow.closeAllInfoWindowsOn(map)
+
+        val geoPoints = mutableListOf<GeoPoint>()
+
+        list.forEach { res ->
+
+            val location = res.selectedPointCoordinates?.split(",") ?: return@forEach
+            val lat = location.getOrNull(0)?.toDoubleOrNull() ?: return@forEach
+            val lon = location.getOrNull(1)?.toDoubleOrNull() ?: return@forEach
+
+            val geoPoint = GeoPoint(lat, lon)
+            geoPoints.add(geoPoint)
+
+            val marker = Marker(map).apply {
+                position = geoPoint
+                icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_pin)
+                title = res.completePath
+                infoWindow = CustomInfoWindow(map)
+                id = "marker_${res.hashCode()}"
+                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                setOnMarkerClickListener { m, _ ->
+                    if (m.isInfoWindowShown) {
+                        m.closeInfoWindow()
+                    } else {
+                        InfoWindow.closeAllInfoWindowsOn(map)
+                        m.showInfoWindow()
+                    }
+                    true
+                }
+            }
+
+            map.setOnTouchListener { _, event ->
+                if (event.action == MotionEvent.ACTION_DOWN) {
+                    InfoWindow.closeAllInfoWindowsOn(map)
+                }
+                false
+            }
+
+            map.overlays.add(marker)
+            mMarkerList.add(marker)
+
+            map.invalidate()
+        }
+    }
+
+    private fun clearMarkers() {
+        myView.mapView.overlays.removeAll(mMarkerList)
+        mMarkerList.clear()
     }
 
     private fun setPingAnimation() {
