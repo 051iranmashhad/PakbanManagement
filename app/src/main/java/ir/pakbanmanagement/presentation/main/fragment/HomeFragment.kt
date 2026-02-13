@@ -383,12 +383,12 @@ class HomeFragment :
                 }
             }
 
-            map.setOnTouchListener { _, event ->
+            /*map.setOnTouchListener { _, event ->
                 if (event.action == MotionEvent.ACTION_DOWN) {
                     InfoWindow.closeAllInfoWindowsOn(map)
                 }
                 false
-            }
+            }*/
 
             map.overlays.add(marker)
             mMarkerList.add(marker)
