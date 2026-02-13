@@ -1,3 +1,5 @@
+@file:Suppress("RemoveSingleExpressionStringTemplate")
+
 package ir.pakbanmanagement.presentation.main.fragment
 
 import androidx.fragment.app.FragmentActivity
@@ -10,7 +12,9 @@ import ir.pakbanmanagement.other.BaseFragmentWithViewModel
 import ir.pakbanmanagement.other.Constant
 import ir.pakbanmanagement.other.LoadingDialog
 import ir.pakbanmanagement.other.PrefManager
+import ir.pakbanmanagement.other.dialog.DatePickerDialog
 import ir.pakbanmanagement.other.getLocalDate
+import ir.pakbanmanagement.other.ifNullOrEmpty
 import ir.pakbanmanagement.other.persianToGregorian2
 import ir.pakbanmanagement.other.popBackStack
 import ir.pakbanmanagement.other.toMapper
@@ -42,6 +46,23 @@ class HistoryFineListFragment :
                 popBackStack()
             }
 
+            val dateNow = getLocalDate()
+            btnDate.apply {
+                text = dateNow
+                tag = dateNow.persianToGregorian2("yyyy-MM-dd")
+                setOnClickListener {
+                    DatePickerDialog(
+                        context = requireActivity(),
+                        initialDate = dateNow
+                    ) { date ->
+                        text = date
+                        tag = date.persianToGregorian2("yyyy-MM-dd")
+
+                        getDetailByContractId()
+                    }.show()
+                }
+            }
+
             mFineListAdapter = FineListAdapter()
 
             recyclerView.apply {
@@ -57,7 +78,7 @@ class HistoryFineListFragment :
 
     private fun getDetailByContractId() {
         mQueryParam[Constant.Key.ID] = "${mUser.contractId}"
-        mQueryParam[Constant.Key.DATE] = getLocalDate().persianToGregorian2("yyyy-MM-dd")
+        mQueryParam[Constant.Key.DATE] = myView.btnDate.tag.toString()
         mViewModel.getDetailByContractId(mJob, mQueryParam) {
             when (it) {
                 Constant.ResultWrapper.Loading -> {
@@ -74,8 +95,9 @@ class HistoryFineListFragment :
                                 res.data?.supSepcialFineDetails?.toMutableList() ?: mutableListOf()
                             mFineListAdapter.setList(list)
                         } else {
-                            "خطا در دریافت اطلاعات!".toastMessage(Constant.ToastType.Warning)
-                            popBackStack()
+                            "${res.message.ifNullOrEmpty { "خطا در دریافت اطلاعات!" }}".toastMessage(
+                                Constant.ToastType.Warning
+                            )
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
