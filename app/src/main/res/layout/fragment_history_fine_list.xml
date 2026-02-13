@@ -10,36 +10,65 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/layout_tool_bar"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/_50sdp"
+        android:layout_height="wrap_content"
         android:background="@color/color_white"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:paddingLeft="@dimen/_16sdp"
-        android:paddingRight="@dimen/_16sdp">
+        android:orientation="vertical">
 
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/img_back"
-            android:layout_width="@dimen/_32sdp"
-            android:layout_height="@dimen/_32sdp"
-            android:adjustViewBounds="true"
-            android:background="@drawable/selector_round_button"
-            android:padding="@dimen/_4sdp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/ic_back" />
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_50sdp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingLeft="@dimen/_16sdp"
+            android:paddingRight="@dimen/_16sdp">
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/img_back"
+                android:layout_width="@dimen/_32sdp"
+                android:layout_height="@dimen/_32sdp"
+                android:adjustViewBounds="true"
+                android:background="@drawable/selector_round_button"
+                android:padding="@dimen/_4sdp"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/ic_back" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/medium"
+                android:text="تاریخچه جرایم"
+                android:textColor="@color/color_black"
+                android:textSize="@dimen/_12ssp"
+                app:fontFamily="@font/medium" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_1sdp"
+            android:layout_marginLeft="@dimen/_8sdp"
+            android:layout_marginRight="@dimen/_8sdp"
+            android:background="@color/color_gray_light" />
 
         <androidx.appcompat.widget.AppCompatTextView
-            android:layout_width="wrap_content"
+            android:id="@+id/btn_date"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_margin="@dimen/_8sdp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_primary_outline"
             android:fontFamily="@font/medium"
-            android:text="تاریخچه جرایم"
-            android:textColor="@color/color_black"
+            android:gravity="center"
+            android:padding="@dimen/_10sdp"
+            android:textColor="@color/color_primary"
             android:textSize="@dimen/_12ssp"
-            app:fontFamily="@font/medium" />
+            app:fontFamily="@font/medium"
+            tools:text="انصراف" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
