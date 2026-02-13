@@ -22,7 +22,6 @@ import ir.pakbanmanagement.other.LoadingDialog
 import ir.pakbanmanagement.other.dialog.DatePickerDialog
 import ir.pakbanmanagement.other.dialog.TimePickerDialog
 import ir.pakbanmanagement.other.fromMapper
-import ir.pakbanmanagement.other.logV
 import ir.pakbanmanagement.other.persianToGregorian
 import ir.pakbanmanagement.other.popBackStack
 import ir.pakbanmanagement.other.toJsonTree
