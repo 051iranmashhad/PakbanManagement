@@ -4,7 +4,6 @@ package ir.pakbanmanagement.presentation.main.fragment
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.view.MotionEvent
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import androidx.core.content.ContextCompat
@@ -25,6 +24,7 @@ import ir.pakbanmanagement.other.checkLocationAndGpsPermissions
 import ir.pakbanmanagement.other.coroutineMain
 import ir.pakbanmanagement.other.getLocalDate
 import ir.pakbanmanagement.other.gone
+import ir.pakbanmanagement.other.hasDebug
 import ir.pakbanmanagement.other.hasGpsEnabled
 import ir.pakbanmanagement.other.hasMultiplePermissionsGranted
 import ir.pakbanmanagement.other.logV
@@ -63,7 +63,7 @@ class HomeFragment :
         mutableListOf<Marker>()
     }
 
-    private var mLatLng: GeoPoint? = GeoPoint(36.33356416766867, 59.50458189307316)
+    private var mLatLng: GeoPoint? = null
     private var mContractId: Int? = null
 
     private var mContractTitleValueListMapper: ContractTitleValueListMapper? = null
@@ -71,6 +71,11 @@ class HomeFragment :
     @SuppressLint("ClickableViewAccessibility")
     override fun setOnView() {
         myView.apply {
+
+            mLatLng = if (hasDebug()) GeoPoint(36.33356416766867, 59.50458189307316)
+            else null
+
+            imgMarker.tag = Constant.Key.TRUE
 
             mapView.apply {
                 System.setProperty("http.keepAlive", "true")
@@ -348,52 +353,85 @@ class HomeFragment :
 
     @SuppressLint("ClickableViewAccessibility")
     private fun addMarkers(list: List<HistoryFineListMapper.Data.SupSepcialFineDetail>) {
-        val map = myView.mapView
+        myView.apply {
+            clearMarkers()
 
-        clearMarkers()
+            InfoWindow.closeAllInfoWindowsOn(mapView)
 
-        InfoWindow.closeAllInfoWindowsOn(map)
+            val geoPoints = mutableListOf<GeoPoint>()
 
-        val geoPoints = mutableListOf<GeoPoint>()
+            list.forEach { res ->
+                val location = res.selectedPointCoordinates
+                    ?.split(",")
+                    ?.map { it.trim() } ?: return@forEach
 
-        list.forEach { res ->
+                val lat = location.getOrNull(0)?.toDoubleOrNull() ?: return@forEach
+                val lon = location.getOrNull(1)?.toDoubleOrNull() ?: return@forEach
 
-            val location = res.selectedPointCoordinates?.split(",") ?: return@forEach
-            val lat = location.getOrNull(0)?.toDoubleOrNull() ?: return@forEach
-            val lon = location.getOrNull(1)?.toDoubleOrNull() ?: return@forEach
+                val geoPoint = GeoPoint(lat, lon)
+                geoPoints.add(geoPoint)
 
-            val geoPoint = GeoPoint(lat, lon)
-            geoPoints.add(geoPoint)
-
-            val marker = Marker(map).apply {
-                position = geoPoint
-                icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_pin)
-                title = res.completePath
-                infoWindow = CustomInfoWindow(map)
-                id = "marker_${res.hashCode()}"
-                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                setOnMarkerClickListener { m, _ ->
-                    if (m.isInfoWindowShown) {
-                        m.closeInfoWindow()
-                    } else {
-                        InfoWindow.closeAllInfoWindowsOn(map)
-                        m.showInfoWindow()
+                val marker = Marker(mapView).apply {
+                    position = geoPoint
+                    icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_pin)
+                    title = buildString {
+                        res.segmentTitle?.let {
+                            appendLine("ناحیه: $it")
+                        }
+                        appendLine()
+                        res.rowTitle?.let {
+                            appendLine("شرح ردیف: $it")
+                        }
+                        appendLine()
+                        res.fineViewDatePersian?.let {
+                            appendLine("تاریخ بازدید: $it")
+                        }
+                        appendLine()
+                        res.completePath?.let {
+                            appendLine("مسیر: $it")
+                        }
+                        appendLine()
+                        res.amount?.let {
+                            appendLine("مقدار(حجم): $it")
+                        }
+                    }.trim()
+                    infoWindow = CustomInfoWindow(mapView)
+                    id = "marker_${res.hashCode()}"
+                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                    setOnMarkerClickListener { m, _ ->
+                        if (m.isInfoWindowShown) {
+                            m.closeInfoWindow()
+                            imgMarker.apply {
+                                visible()
+                                tag = Constant.Key.TRUE
+                            }
+                            imgDisplayMarker.visible()
+                            setPingAnimation()
+                        } else {
+                            InfoWindow.closeAllInfoWindowsOn(mapView)
+                            m.showInfoWindow()
+                            imgMarker.apply {
+                                gone()
+                                tag = Constant.Key.FALSE
+                            }
+                            imgDisplayMarker.gone()
+                        }
+                        true
                     }
-                    true
                 }
+
+                /*map.setOnTouchListener { _, event ->
+                    if (event.action == MotionEvent.ACTION_DOWN) {
+                        InfoWindow.closeAllInfoWindowsOn(map)
+                    }
+                    false
+                }*/
+
+                mapView.overlays.add(marker)
+                mMarkerList.add(marker)
+
+                mapView.invalidate()
             }
-
-            /*map.setOnTouchListener { _, event ->
-                if (event.action == MotionEvent.ACTION_DOWN) {
-                    InfoWindow.closeAllInfoWindowsOn(map)
-                }
-                false
-            }*/
-
-            map.overlays.add(marker)
-            mMarkerList.add(marker)
-
-            map.invalidate()
         }
     }
 
@@ -411,7 +449,8 @@ class HomeFragment :
                 override fun onAnimationStart(animation: Animation) {}
 
                 override fun onAnimationEnd(animation: Animation) {
-                    imgMarker.startAnimation(scaleUp)
+                    if (imgMarker.tag.toString() == Constant.Key.TRUE)
+                        imgMarker.startAnimation(scaleUp)
                 }
 
                 override fun onAnimationRepeat(animation: Animation) {}
@@ -421,14 +460,14 @@ class HomeFragment :
                 override fun onAnimationStart(animation: Animation) {}
 
                 override fun onAnimationEnd(animation: Animation) {
-                    imgMarker.startAnimation(scaleDown)
+                    if (imgMarker.tag.toString() == Constant.Key.TRUE)
+                        imgMarker.startAnimation(scaleDown)
                 }
 
                 override fun onAnimationRepeat(animation: Animation) {}
             })
 
             imgMarker.startAnimation(scaleUp)
-
         }
     }
 
