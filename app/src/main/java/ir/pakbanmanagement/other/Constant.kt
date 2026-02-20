@@ -35,7 +35,7 @@ object Constant {
             id = MenuKey.PROFILE, title = "پروفایل", icon = R.drawable.ic_user
         ),
         MenuMapper(
-            id = MenuKey.FINE_LIST, title = "تاریخچه جرایم", icon = R.drawable.ic_info
+            id = MenuKey.FINE_LIST, title = "تاریخچه جرایم", icon = R.drawable.ic_history
         ),
         MenuMapper(
             id = MenuKey.LOG_OUT, title = "خروج", icon = R.drawable.ic_log_out
