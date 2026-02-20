@@ -8,7 +8,9 @@ import ir.pakbanmanagement.mapper.HistoryFineListMapper
 import ir.pakbanmanagement.other.ifNullOrEmpty
 import ir.pakbanmanagement.other.invisible
 
-class FineListAdapter : RecyclerView.Adapter<FineListAdapter.MyViewHolder>() {
+class FineListAdapter(
+    private val onClick: (HistoryFineListMapper.Data.SupSepcialFineDetail) -> Unit,
+) : RecyclerView.Adapter<FineListAdapter.MyViewHolder>() {
 
     private var mList: MutableList<HistoryFineListMapper.Data.SupSepcialFineDetail> =
         mutableListOf()
@@ -35,6 +37,9 @@ class FineListAdapter : RecyclerView.Adapter<FineListAdapter.MyViewHolder>() {
 
         fun bindView(item: HistoryFineListMapper.Data.SupSepcialFineDetail) {
             mBinding.apply {
+                root.setOnClickListener {
+                    onClick.invoke(item)
+                }
                 txtTitle.text = item.completePath.ifNullOrEmpty()
                 imgIcon.invisible()
             }
