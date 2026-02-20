@@ -1,11 +1,11 @@
 package ir.pakbanmanagement.other
 
 import android.content.Context
-import androidx.multidex.MultiDexApplication
+import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
-class App : MultiDexApplication() {
+class App : Application() {
 
     companion object {
         lateinit var appContext: Context
