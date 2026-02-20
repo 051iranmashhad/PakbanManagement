@@ -290,7 +290,7 @@ class PersianDateFormat {
             for (i in key.indices) {
                 pattern1 = pattern1!!.replace(key[i], values[i])
             }
-            return pattern1!!
+            return pattern1
         }
 
         private fun textNumberFilterStatic(date: String): String {
