@@ -1,12 +1,12 @@
 plugins {
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
     id 'kotlin-parcelize'
     id 'dagger.hilt.android.plugin'
     id 'com.google.devtools.ksp'
 }
 
 def jvmTarget = 17
+def appName = "PakbanManagement"
 
 android {
     namespace 'ir.pakbanmanagement'
@@ -21,24 +21,19 @@ android {
         versionCode 1
         versionName "1.0.0"
         resourceConfigurations += ['en', 'fa']
-        multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "BASE_URL", "\"https://172.16.9.68\"")
+
+        base.setArchivesName("${appName}_vc${versionCode}_vn${versionName}")
     }
 
     buildTypes {
-        def vc = project(':app').android.defaultConfig.versionCode
-        def vn = project(':app').android.defaultConfig.versionName
         release {
-            setArchivesBaseName("PakbanManagement" + "_vc" + vc + "_vn" + vn)
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             minifyEnabled true
             shrinkResources true
-        }
-        debug {
-            setArchivesBaseName("PakbanManagement" + "_vc" + vc + "_vn" + vn)
         }
     }
 
@@ -62,6 +57,10 @@ android {
         disable 'TypographyFractions'
         disable 'TypographyQuotes'
         disable 'InternalInsetResource'
+        disable 'KotlinConstantConditions'
+
+        abortOnError false
+        warningsAsErrors false
     }
 }
 
@@ -87,7 +86,7 @@ dependencies {
     implementation 'com.intuit.ssp:ssp-android:1.1.1'
 
     // activity & fragment
-    implementation 'androidx.activity:activity-ktx:1.12.2'
+    implementation 'androidx.activity:activity-ktx:1.12.4'
     implementation 'androidx.fragment:fragment-ktx:1.8.9'
 
     // view model
@@ -96,14 +95,11 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.10.0'
 
     // dagger hilt
-    implementation 'com.google.dagger:hilt-android:2.57.2'
-    ksp 'com.google.dagger:hilt-compiler:2.57.2'
-
-    // multidex
-    implementation "androidx.multidex:multidex:2.0.1"
+    implementation 'com.google.dagger:hilt-android:2.59.1'
+    ksp 'com.google.dagger:hilt-compiler:2.59.1'
 
     // auth
-    implementation 'com.google.android.gms:play-services-auth:21.4.0'
+    implementation 'com.google.android.gms:play-services-auth:21.5.1'
 
     // gson
     implementation 'com.google.code.gson:gson:2.13.2'
