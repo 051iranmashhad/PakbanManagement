@@ -1,3 +1,5 @@
+@file:Suppress("RemoveSingleExpressionStringTemplate")
+
 package ir.pakbanmanagement.presentation.main.fragment
 
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,6 +24,7 @@ import ir.pakbanmanagement.other.LoadingDialog
 import ir.pakbanmanagement.other.dialog.DatePickerDialog
 import ir.pakbanmanagement.other.dialog.TimePickerDialog
 import ir.pakbanmanagement.other.fromMapper
+import ir.pakbanmanagement.other.ifNullOrEmpty
 import ir.pakbanmanagement.other.persianToGregorian
 import ir.pakbanmanagement.other.popBackStack
 import ir.pakbanmanagement.other.toJsonTree
@@ -429,7 +432,9 @@ class FineFragment(
                         if (res.success == true) {
                             "عملیات موفق".toastMessage(Constant.ToastType.Success)
                             popBackStack()
-                        } else "خطا در ثبت اطلاعات!".toastMessage(Constant.ToastType.Warning)
+                        } else {
+                            "${res.message.ifNullOrEmpty { "خطا در ثبت اطلاعات!" }}".toastMessage(Constant.ToastType.Warning)
+                        }
                     } catch (e: Exception) {
                         e.printStackTrace()
                         "خطا در ثبت اطلاعات!".toastMessage(Constant.ToastType.Warning)
