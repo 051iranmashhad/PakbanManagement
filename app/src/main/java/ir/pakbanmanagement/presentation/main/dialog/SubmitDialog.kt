@@ -16,7 +16,7 @@ class SubmitDialog(
     private val isNegative: Boolean = true,
     private val isCancelable: Boolean = true,
     private val dismiss: () -> Unit = {},
-    private val block: () -> Unit,
+    private val block: () -> Unit = {},
 ) : BaseBottomSheetDialog<BottomSheetSubmitBinding>(context) {
 
     override fun setOnView() {
