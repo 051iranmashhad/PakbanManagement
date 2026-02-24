@@ -8,7 +8,7 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/color_white"
+        android:background="@color/color_gray_light"
         android:gravity="center"
         android:orientation="vertical">
 
@@ -34,8 +34,6 @@
                 android:layout_marginRight="@dimen/_4sdp"
                 android:layout_marginBottom="@dimen/_4sdp"
                 android:adjustViewBounds="true"
-                android:background="@drawable/selector_round_button"
-                android:clickable="true"
                 android:padding="@dimen/_4sdp"
                 android:scaleType="fitCenter"
                 app:srcCompat="@drawable/ic_close" />
@@ -46,11 +44,10 @@
             android:id="@+id/edt_search"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/_16sdp"
-            android:layout_marginRight="@dimen/_16sdp"
-            android:background="@drawable/bg_edt"
-            android:gravity="center"
-            android:hint="جستجو..."
+            android:layout_marginLeft="@dimen/_12sdp"
+            android:layout_marginRight="@dimen/_12sdp"
+            android:background="@drawable/bg_edt2"
+            android:hint="جستجو در اطلاعات ..."
             android:inputType="text"
             android:maxLength="100"
             android:maxLines="1"
@@ -79,7 +76,6 @@
             android:layout_height="0dp"
             android:layout_marginTop="@dimen/_8sdp"
             android:layout_weight="1"
-            android:background="@color/color_gray_light"
             android:clipChildren="true"
             android:clipToPadding="true"
             android:overScrollMode="ifContentScrolls"
