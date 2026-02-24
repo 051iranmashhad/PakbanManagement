@@ -2,7 +2,9 @@
 
 package ir.pakbanmanagement.presentation.main.fragment
 
+import android.net.Uri
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.FragmentActivity
@@ -37,12 +39,41 @@ import ir.pakbanmanagement.presentation.main.dialog.ListWithSearchDialog
 import ir.pakbanmanagement.presentation.main.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 import org.osmdroid.util.GeoPoint
+import java.io.File
 
 @AndroidEntryPoint
 class FineFragment(
     private val mLatLng: GeoPoint?,
     private val mContractId: Int?,
 ) : BaseFragmentWithViewModel<MainViewModel, FragmentFineBinding>(MainViewModel::class.java) {
+
+    private val mImagePickerLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            if (uri != null) {
+                lifecycleScope.launch {
+                    "در حال بهینه سازی تصویر".toastMessage(Constant.ToastType.Info)
+                    mLoadingDialog.show()
+                    val base64 = uriToCompressedBase64(requireActivity(), uri)
+                    mImageListAdapter.addItem(ImageListMapper(base64Data = base64))
+                    mLoadingDialog.dismiss()
+                }
+            }
+        }
+
+    private val mTakePictureLauncher =
+        registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success) {
+                photoUri?.let { uri ->
+                    lifecycleScope.launch {
+                        "در حال بهینه سازی تصویر".toastMessage(Constant.ToastType.Info)
+                        mLoadingDialog.show()
+                        val base64 = uriToCompressedBase64(requireActivity(), uri)
+                        mImageListAdapter.addItem(ImageListMapper(base64Data = base64))
+                        mLoadingDialog.dismiss()
+                    }
+                }
+            } else "عکس گرفته نشد".toastMessage(Constant.ToastType.Warning)
+        }
 
     private val mLoadingDialog: LoadingDialog by lazy {
         LoadingDialog(requireContext())
@@ -51,17 +82,9 @@ class FineFragment(
         hashMapOf<String, String>()
     }
 
-    private val imagePickerLauncher =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            if (uri != null) {
-                lifecycleScope.launch {
-                    val base64 = uriToCompressedBase64(requireActivity(), uri)
-                    mImageListAdapter.addItem(ImageListMapper(base64Data = base64))
-                }
-            }
-        }
-
     private lateinit var mImageListAdapter: ImageListAdapter
+
+    private var photoUri: Uri? = null
 
     override fun setOnView() {
         myView.apply {
@@ -193,7 +216,28 @@ class FineFragment(
             }
 
             btnAddImage.setOnClickListener {
-                imagePickerLauncher.launch("image/*")
+                val list = mutableListOf(
+                    BottomSheetMenuMapper(
+                        title = "گالری"
+                    ),
+                    BottomSheetMenuMapper(
+                        title = "دوربین"
+                    )
+                )
+
+                ListDialog(
+                    context = requireContext(), list = list, isCancelable = false
+                ) { pos ->
+                    when (pos) {
+                        0 -> {
+                            mImagePickerLauncher.launch("image/*")
+                        }
+
+                        1 -> {
+                            capturePhoto()
+                        }
+                    }
+                }.show()
             }
 
             btnSubmit.setOnClickListener {
@@ -433,7 +477,9 @@ class FineFragment(
                             "عملیات موفق".toastMessage(Constant.ToastType.Success)
                             popBackStack()
                         } else {
-                            "${res.message.ifNullOrEmpty { "خطا در ثبت اطلاعات!" }}".toastMessage(Constant.ToastType.Warning)
+                            "${res.message.ifNullOrEmpty { "خطا در ثبت اطلاعات!" }}".toastMessage(
+                                Constant.ToastType.Warning
+                            )
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -447,6 +493,21 @@ class FineFragment(
                 }
             }
         }
+    }
+
+    private fun capturePhoto() {
+        val photoFile = File(
+            requireContext().cacheDir,
+            "camera_photo_${System.currentTimeMillis()}.jpg"
+        )
+
+        photoUri = FileProvider.getUriForFile(
+            requireContext(),
+            "${requireContext().packageName}.fileprovider",
+            photoFile
+        )
+
+        mTakePictureLauncher.launch(photoUri)
     }
 
     override fun setOnBackPressed(it: FragmentActivity) {
