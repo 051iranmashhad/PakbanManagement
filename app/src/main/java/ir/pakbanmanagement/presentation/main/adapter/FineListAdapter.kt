@@ -40,7 +40,7 @@ class FineListAdapter(
                 root.setOnClickListener {
                     onClick.invoke(item)
                 }
-                txtTitle.text = item.completePath.ifNullOrEmpty()
+                txtTitle.text = item.rowTitle.ifNullOrEmpty()
                 imgIcon.invisible()
             }
         }
