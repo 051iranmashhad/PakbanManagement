@@ -90,6 +90,7 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import java.lang.reflect.Type
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 import kotlin.compareTo
 import kotlin.jvm.java
@@ -1192,4 +1193,10 @@ internal fun Any.toJsonTree(): JsonElement {
         gson.toJsonTree("{}", type)
     }
     return jsonElement
+}
+
+internal fun String.saveToCacheFile(context: Context, fileName: String = "app_${Date().time}.txt"): File {
+    val file = File(context.cacheDir, fileName)
+    file.writeText(this@saveToCacheFile)
+    return file
 }
