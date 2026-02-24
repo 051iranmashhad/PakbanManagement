@@ -111,6 +111,11 @@ class HomeFragment :
                     setZoom(20.0)
                     setCenter(GeoPoint(36.33356416766867, 59.50458189307316))
                 }
+
+                /*setOnTouchListener { _, _ ->
+                    InfoWindow.closeAllInfoWindowsOn(mapView)
+                    return@setOnTouchListener true
+                }*/
             }
 
             fabFindLocation.setOnClickListener {
@@ -201,10 +206,6 @@ class HomeFragment :
                                 PrefManager.deleteUser()
                                 restartApp()
                             }
-                        }
-
-                        else -> {
-//                            it.body.toastMessage()
                         }
                     }
                 }
@@ -299,7 +300,8 @@ class HomeFragment :
 
     private fun getDetailByContractId() {
         mQueryParam[Constant.Key.ID] = "$mContractId"
-        mQueryParam[Constant.Key.DATE] = getLocalDate().persianToGregorian2("yyyy-MM-dd")
+        mQueryParam[Constant.Key.DATE] =
+            getLocalDate().persianToGregorian2("yyyy-MM-dd") /*"2026-02-20"*/
         mViewModel.getDetailByContractId(mJob, mQueryParam) {
             when (it) {
                 Constant.ResultWrapper.Loading -> {
@@ -360,8 +362,8 @@ class HomeFragment :
 
             val geoPoints = mutableListOf<GeoPoint>()
 
-            list.forEach { res ->
-                val location = res.selectedPointCoordinates
+            list.forEach { item ->
+                val location = item.selectedPointCoordinates
                     ?.split(",")
                     ?.map { it.trim() } ?: return@forEach
 
@@ -375,28 +377,29 @@ class HomeFragment :
                     position = geoPoint
                     icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_pin)
                     title = buildString {
-                        res.segmentTitle?.let {
-                            appendLine("ناحیه: $it")
-                        }
+                        item.segmentTitle?.let { appendLine("ناحیه: $it") }
                         appendLine()
-                        res.rowTitle?.let {
-                            appendLine("شرح ردیف: $it")
-                        }
+                        item.rowTitle?.let { appendLine("شرح ردیف: $it") }
                         appendLine()
-                        res.fineViewDatePersian?.let {
-                            appendLine("تاریخ بازدید: $it")
-                        }
+                        item.fineViewDatePersian?.let { appendLine("تاریخ بازدید: $it") }
                         appendLine()
-                        res.completePath?.let {
-                            appendLine("مسیر: $it")
-                        }
+                        item.completePath?.let { appendLine("مسیر: $it") }
                         appendLine()
-                        res.amount?.let {
-                            appendLine("مقدار(حجم): $it")
-                        }
+                        val amount = item.amount ?: 0.0
+                        val estimatePrice = item.estimatePrice ?: 0.0
+                        val amountCapacity = item.amountCapacity ?: (amount * estimatePrice)
+                        appendLine("مقدار (حجم): $amount")
+                        appendLine("قیمت: $estimatePrice")
+                        appendLine(
+                            "جمع کل: ${"%,.0f".format(amount)} × ${
+                                "%,.0f".format(
+                                    estimatePrice
+                                )
+                            } = ${"%,.0f".format(amountCapacity)}"
+                        )
                     }.trim()
                     infoWindow = CustomInfoWindow(mapView)
-                    id = "marker_${res.hashCode()}"
+                    id = "marker_${item.hashCode()}"
                     setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                     setOnMarkerClickListener { m, _ ->
                         if (m.isInfoWindowShown) {
@@ -419,13 +422,6 @@ class HomeFragment :
                         true
                     }
                 }
-
-                /*map.setOnTouchListener { _, event ->
-                    if (event.action == MotionEvent.ACTION_DOWN) {
-                        InfoWindow.closeAllInfoWindowsOn(map)
-                    }
-                    false
-                }*/
 
                 mapView.overlays.add(marker)
                 mMarkerList.add(marker)
