@@ -3,6 +3,7 @@ package ir.pakbanmanagement.presentation.main.fragment
 import android.net.Uri
 import androidx.fragment.app.FragmentActivity
 import dagger.hilt.android.AndroidEntryPoint
+import ir.pakbanmanagement.BuildConfig
 import ir.pakbanmanagement.databinding.FragmentSplashBinding
 import ir.pakbanmanagement.mapper.TokenMapper
 import ir.pakbanmanagement.other.BaseFragment
@@ -21,6 +22,7 @@ import ir.pakbanmanagement.presentation.main.activity.MainActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlin.time.Duration.Companion.milliseconds
 
 @AndroidEntryPoint
 class SplashFragment : BaseFragment<FragmentSplashBinding>() {
@@ -64,11 +66,11 @@ class SplashFragment : BaseFragment<FragmentSplashBinding>() {
                 .isNullOrEmpty() -> {
                 mJob.coroutineMain {
 
-                    delay(2000)
-                    val loginUrl = "https://172.16.9.68/mobileLogin/LoginSSO"
+                    delay(2000.milliseconds)
+                    val loginUrl = "${BuildConfig.BASE_URL}/mobileLogin/LoginSSO" //"https://172.16.9.68/mobileLogin/LoginSSO"
                     loginUrl.openBrowser(requireContext())
 
-                    delay(3000)
+                    delay(3000.milliseconds)
                     requireActivity().finishAndRemoveTask()
                 }
             }
